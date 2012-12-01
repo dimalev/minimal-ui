@@ -9,11 +9,11 @@ package com.minimalui.base {
     public static var doTrace:Boolean = false;
     private var mFields:Vector.<String> = new Vector.<String>;
     private var mChangedFields:Vector.<String> = new Vector.<String>;
+    private var mInheritableFields:Vector.<String> = new Vector.<String>;
     private var mData:Object = new Object;
     private var mParent:Style;
-    private var mDefault:Style;
-    private var mLocks:uint = 0;
     private var mMutable:Boolean = true;
+    private var mHasNewParent:Boolean = false;
 
     public function get mutable():Boolean { return mMutable; }
     public function freeze():Style {
@@ -22,53 +22,39 @@ package com.minimalui.base {
       return this;
     }
 
+    public function get hasNewParent():Boolean { return mHasNewParent; }
+
     public function set parent(p:Style):void {
       if(!mMutable) throw new Error("Cannot change parent. Style is frozen!");
       if(mParent == p) return;
-      if(mParent) {
-        mParent.removeEventListener(FieldChangeEvent.CHANGE, onParentChange);
-        mParent.removeEventListener(StyleNewParentEvent.NEW_PARENT, onNewParent);
-      }
       mParent = p;
-      if(mParent) {
-        mParent.addEventListener(FieldChangeEvent.CHANGE, onParentChange);
-        mParent.addEventListener(StyleNewParentEvent.NEW_PARENT, onNewParent);
-      }
-      dispatchEvent(new StyleNewParentEvent);
+      mHasNewParent = true;
     }
 
-    public function set defaults(d:Style):void {
-      mDefault = d;
-    }
-
-    private function onNewParent(e:StyleNewParentEvent):void {
-      dispatchEvent(new StyleNewParentEvent);
-    }
-
-    private function onParentChange(e:FieldChangeEvent):void {
-      if(doTrace) trace("parent values changed " + e.fields.join(", "));
-      lock();
-      for each(var f:String in e.fields) addChanged(f);
-      lock(false);
-    }
-
-    public function Style(fields:Object = null, parent:Style = null, mutable:Boolean = true) {
-      if(fields) setValues(fields);
+    public function Style(fields:Object = null) {
+      if(fields is String) setCSS(fields as String);
       this.parent = parent;
     }
 
+    public function addInheritable(name:String):void {
+      if(isInheritable(name)) return;
+      mInheritableFields.push(name);
+    }
+
+    public function removeInheritable(name:String):void {
+      if(!isInheritable(name)) return;
+      mInheritableFields.splice(mInheritableFields.indexOf(name), 1);
+    }
+
+    public function isInheritable(name:String):Boolean { return mInheritableFields.indexOf(name) >= 0; }
+
     public function setValues(fields:Object):void {
-      lock();
       for(var name:String in fields) setValue(name, fields[name]);
-      lock(false);
     }
 
     public function getValue(name:String):Object {
-      if(!hasValue(name)) {
-        if(!mDefault) return null;
-        return mDefault.getValue(name);
-      }
-      return hasOwnValue(name) ? mData[name] : mParent.getValue(name);
+      if(!hasValue(name)) return null;
+      return hasOwnValue(name) ? mData[name] : (isInheritable(name) ? mParent.getValue(name) : null);
     }
 
     public function getString(name:String):String { return getValue(name) as String; }
@@ -76,9 +62,7 @@ package com.minimalui.base {
 
     public function setValue(name:String, value:Object):void {
       if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
-      if(doTrace) trace("adding new style value " + name);
       if(!hasOwnValue(name)) addValue(name);
-      else if(mDefault[name] == value) return;
       mData[name] = value;
       addChanged(name);
     }
@@ -92,20 +76,28 @@ package com.minimalui.base {
     }
 
     public function delValue(name:String):Boolean {
-      if(!hasValue(name)) return false;
+      if(!hasOwnValue(name)) return false;
       delete mData[name];
       mFields.splice(mFields.indexOf(name), 1);
       addChanged(name);
       return true;
     }
 
-    public function cleanChanged():void { mChangedFields.splice(0, mChangedFields.length); }
+    public function get changed():Vector.<String> { return mChangedFields; }
 
-    public function lock(bb:Boolean = true):void {
-      if(bb) ++mLocks;
-      else --mLocks;
-      if(mLocks != 0 ) return;
-      onChange();
+    public function get allChanged():Vector.<String> {
+      if(!mParent) return changed;
+      var res:Vector.<String> = mParent.allChanged;
+      return res.concat(changed).sort().filter(function(value:String) {
+                                                 var prev = this.prev;
+                                                 this.prev = value;
+                                                 return prev != value;
+                                               }, { prev: null });
+    }
+
+    public function cleanChanged():void {
+      mChangedFields.splice(0, mChangedFields.length);
+      mHasNewParent = false;
     }
 
     protected function addValue(name:String):void {
@@ -116,12 +108,6 @@ package com.minimalui.base {
       if(mChangedFields.indexOf(name) >= 0) return;
       mChangedFields.push(name);
       onChange();
-    }
-
-    private function onChange():void {
-      if(mChangedFields.length == 0) return;
-      dispatchEvent(new FieldChangeEvent(Vector.<String>(mChangedFields)));
-      cleanChanged();
     }
   }
 }

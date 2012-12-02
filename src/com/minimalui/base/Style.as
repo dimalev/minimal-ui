@@ -36,9 +36,11 @@ package com.minimalui.base {
       this.parent = parent;
     }
 
-    public function addInheritable(name:String):void {
-      if(isInheritable(name)) return;
-      mInheritableFields.push(name);
+    public function addInheritable(names:String...):void {
+      for each(var name:String in names) {
+        if(isInheritable(name)) continue;
+        mInheritableFields.push(name);
+      }
     }
 
     public function removeInheritable(name:String):void {
@@ -83,12 +85,25 @@ package com.minimalui.base {
       return true;
     }
 
-    public function get changed():Vector.<String> { return mChangedFields; }
+    public function get changed():Vector.<String> {
+      if(!mParent) return mChangedFields;
+      var all:Vector.<String> = mStyle.allChanged.filter(
+                                                         function(elem:String, i:int, a:Vector.<String>) {
+                                                           return mInheritableFields.indexOf(elem) >= 0;
+                                                         }
+                                                         );
+      return all.sort().filter(
+                               function(value:String, i:int, a:Vector.<String>) {
+                                 var prev = this.prev;
+                                 this.prev = value;
+                                 return prev != value;
+                               }, { prev: null });
+    }
 
-    public function get allChanged():Vector.<String> {
+    protected function get allChanged():Vector.<String> {
       if(!mParent) return changed;
       var res:Vector.<String> = mParent.allChanged;
-      return res.concat(changed).sort().filter(function(value:String) {
+      return res.concat(mChangedFields).sort().filter(function(value:String, i:int, a:Vector.<String>) {
                                                  var prev = this.prev;
                                                  this.prev = value;
                                                  return prev != value;

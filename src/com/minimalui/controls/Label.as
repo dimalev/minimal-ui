@@ -21,22 +21,6 @@ package com.minimalui.controls {
     public static const TEXT_ALIGN:String = "text-align";
     public static const TEXT_VALIGN:String = "text-valign";
 
-    public static var sDefaultStyle:Style = getDefaultStyle();
-
-    private static function getDefaultStyle():Style {
-      var obj:Object = new Object;
-      obj[FONT_FAMILY] = "sans serif";
-      obj[FONT_SIZE]   = 12;
-      obj[FONT_COLOR]  = 0x000000;
-      obj[FONT_WEIGHT] = "normal";
-      obj[TEXT_ALIGN]  = "left";
-      obj[TEXT_VALIGN] = "top";
-
-      return new Style(obj).freeze();
-    }
-    private var mWidth:Number = -1;
-    private var mHeight:Number = -1;
-
     private var mTextWidth:Number;
     private var mTextHeight:Number;
 
@@ -44,34 +28,20 @@ package com.minimalui.controls {
 
     private var mContent:String;
 
-    public override function set width(w:Number):void { mWidth = w; redraw(); }
-    public override function set height(h:Number):void { mHeight = h; coreAlign(); }
-    public function set text(txt:String):void { mContent = txt; redraw(); }
-
-    public function get textWidth():Number { return mTextWidth; }
-    public function get textHeight():Number { return mTextHeight; }
-
-    public override function get width():Number { return mWidth > 0 ? mWidth : mTextWidth; }
-    public override function get height():Number { return mHeight > 0 ? mHeight : mTextHeight; }
-
     public function set content(txt:String):void {
-      mContent = txt;
-      redraw();
+      setStyle(txt);
+      setDirty();
+      invalidateSize();
     }
 
-    public function Label(text:String, style:Object = null) {
-      this.defaultStyle = sDefaultStyle;
-      mContent = text;
-      if(style is Style) this.style = style as Style;
-      else if(style != null) this.style = new Style(style);
-      else this.style = new Style();
-      this.style.lock();
-      this.style.lock(false);
-      redraw();
+    public function Label(text:String, cssorid:String = null, id:String = null) {
+      super(cssorid, id);
+      mStyle.addInheritable(FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN, TEXT_VALIGN);
+      content = text;
     }
 
-    protected override function onStyleChange(fce:FieldChangeEvent):void {
-      if(Style.doTrace) trace("parent values changed " + fce.fields.join(", "));
+    protected override function commitProperties():void {
+      var changed:Vector.<String> = mStyle.changed;
       var isAlignChanged:Boolean = fce.contains(Vector.<String>([TEXT_ALIGN, TEXT_VALIGN]));
 
       if(fce.contains(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT]))) {

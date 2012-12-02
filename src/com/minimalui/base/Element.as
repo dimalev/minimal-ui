@@ -91,6 +91,7 @@ package com.minimalui.base {
 
     public final function commitProperties():void {
       coreCommitProperties();
+      mStyle.cleanChanged();
       mDirty = false;
     }
 

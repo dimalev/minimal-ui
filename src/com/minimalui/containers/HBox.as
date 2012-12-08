@@ -1,61 +1,96 @@
 package com.minimalui.containers {
   import flash.display.Sprite;
+  import flash.geom.Rectangle;
 
+  import com.minimalui.base.BaseContainer;
+  import com.minimalui.base.Style;
   import com.minimalui.base.Element;
 
-  public class HBox extends Box {
-    public var elementMargin:Number = 5;
+  public class HBox extends BaseContainer {
+    protected var mRealWidth:Number = 0;
+    protected var mRealHeight:Number = 0;
 
-    public function HBox(items:Vector.<Element> = null) {
-      super(items);
+    public function HBox(items:Vector.<Element> = null, idorcss:String = null, id:String = null) {
+      super(idorcss, id);
+      if(!items) return;
+      for each(var i:Element in items) addChild(i);
+      invalidateSize();
     }
 
-    protected override function coreRedraw():void {
-      var w:Number = mWidth;
-      var h:Number = mHeight;
-      if(w == -1 || h == -1) {
-        var h1:Number = 0;
-        for(var i:uint = 0; i < mElements.length; ++i)
-          h1 = Math.max(h1, mElements[i].height);
-        if(h == -1) h = h1 + margin[1] + margin[3];
-        if(w == -1) w = internalWidth() + margin[0] + margin[2] + Math.max(mElements.length - 1, 0) * elementMargin;
+    protected override function coreMeasure():void {
+      var lastHorizontalMargin:Number = Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("horizontal-spacing"));
+      var w:Number = lastHorizontalMargin;
+      var h:Number= mStyle.getNumber("padding-top") + mStyle.getNumber("padding-bottom");
+      for each(var c:Element in mChildren) {
+        c.measure();
+        var ch:Number = c.measuredHeight;
+        h = Math.max(h, ch + Math.max(mStyle.getNumber("padding-top"),    c.style.getNumber("margin-top")   )
+                           + Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"))
+                     );
+
+        var cw:Number = c.measuredWidth;
+        w += cw;
+        if(c.style.getNumber("margin-left") > lastHorizontalMargin)
+          w += (c.style.getNumber("margin-left") - lastHorizontalMargin);
+        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("horizontal-spacing"));
+        w += lastHorizontalMargin;
       }
-
-      adjustVertically(h);
-      adjustHorisontally(w);
-      mRealWidth = w;
-      mRealHeight = h;
-      coreDrawBackground();
+      if(mStyle.getNumber("padding-right") > lastHorizontalMargin)
+        w += (mStyle.getNumber("padding-right") - lastHorizontalMargin);
+      mMeasuredWidth = Math.max(mRealWidth = w, mStyle.getNumber("width"));
+      mMeasuredHeight = Math.max(mRealHeight = h, mStyle.getNumber("height"));
     }
 
-    private function internalWidth():Number {
-      var w:Number = 0;
-      for(var i:uint = 0; i < mElements.length; ++i)
-        w += mElements[i].width;
-      return w;
-    }
+    protected override function coreLayout():void {
+      trace("Box layout " + mViewPort.width + "x" + mViewPort.height);
+      var c:Element;
+      var contentW:Number = mRealWidth
+        - Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("horizontal-spacing"), mChildren[0].style.getNumber("margin-left"))
+        - Math.max(mStyle.getNumber("padding-right"), mStyle.getNumber("horizontal-spacing"), mChildren[mChildren.length-1].style.getNumber("margin-right"));
+      var contentH:Number = mViewPort.height;
 
-    protected override function adjustHorisontally(w:Number):void {
-      var xx:Number = 0;
-      var i:uint;
-      var tw:Number;
-      switch(mAlign) {
+      var lastHorizontalMargin:Number = 4000;
+      var xx:Number = (mViewPort.width - contentW) / 2;
+      switch(mStyle.getString("align") || "center") {
       case "left":
-        xx = margin[0];
-        break;
-      case "center":
-        tw = internalWidth() + Math.max(mElements.length - 1, 0) * elementMargin;
-        xx = margin[0] + Math.round((w - margin[0] - margin[2] - tw) / 2);
+        xx = Math.max(mStyle.getNumber("padding-right"), mChildren[0].style.getNumber("margin-right"));
         break;
       case "right":
-        tw = internalWidth() + Math.max(mElements.length - 1, 0) * elementMargin;
-        xx = w - margin[2] - tw;
+        xx = mViewPort.width - contentW;
         break;
       }
-      for(i = 0; i < mElements.length; ++i) {
-        mElements[i].x = xx;
-        xx += mElements[i].width + elementMargin;
+
+      for each(c in mChildren) {
+        if(c.style.getNumber("margin-left") > lastHorizontalMargin)
+          xx += (c.style.getNumber("margin-left") - lastHorizontalMargin);
+
+        var yy:Number = 0;
+        switch(mStyle.getString("valign") || "middle") {
+        case "top":
+          yy = Math.max(mStyle.getNumber("padding-top"), c.style.getNumber("margin-top"));
+          break;
+        case "middle":
+          yy = ((mViewPort.height - mStyle.getNumber("padding-top") - mStyle.getNumber("padding-bottom"))
+                - c.measuredHeight) / 2 + mStyle.getNumber("padding-top");
+          break;
+        case "bottom":
+          yy = mViewPort.height - c.measuredHeight
+            - Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"));
+          break;
+        }
+
+        trace(xx + " " + " " + yy + " " + c.measuredWidth + " " + c.measuredHeight);
+        c.layout(new Rectangle(xx, yy, c.measuredWidth, c.measuredHeight));
+
+        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("horizontal-spacing"));
+        xx += c.measuredWidth + lastHorizontalMargin;
       }
+      setChanged();
     }
+
+    // protected override function coreRedraw():void {
+    //   graphics.lineStyle(0, 0xff);
+    //   graphics.drawRect(0,0,mRealWidth, mRealHeight);
+    // }
   }
 }

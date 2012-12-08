@@ -1,6 +1,6 @@
 package com.minimalui.base {
   import flash.display.Stage;
-  import flash.events.Event;e
+  import flash.events.Event;
 
   public class LayoutManager {
     private static var sDefault:LayoutManager;
@@ -27,12 +27,13 @@ package com.minimalui.base {
       mResized.push(e);
     }
 
-    public function tick(e:Event):void {
+    public function tick(event:Event):void {
+      var e:Element;
       var changed:Vector.<Element> = new Vector.<Element>;
 
       while(mDirty.length > 0) {
         var dirty:Vector.<Element> = mDirty.splice(0, mDirty.length);
-        for each(var e:Element in dirty) {
+        for each(e in dirty) {
           if(changed.indexOf(e) <= 0) changed.push(e);
           e.commitProperties();
         }
@@ -44,8 +45,8 @@ package com.minimalui.base {
         var p:Element = e;
         while(true) {
           p.invalidateSize();
-          if(p.parent = null) break;
-          p = p.parent;
+          if(!p.getParent()) break;
+          p = p.getParent();
         }
         if(parents.indexOf(p) < 0) parents.push(p);
       }

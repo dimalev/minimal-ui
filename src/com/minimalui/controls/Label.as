@@ -21,58 +21,57 @@ package com.minimalui.controls {
     public static const TEXT_ALIGN:String = "text-align";
     public static const TEXT_VALIGN:String = "text-valign";
 
-    private var mTextWidth:Number;
-    private var mTextHeight:Number;
+    /* data */
+    public static const TEXT_CONTENT:String = "content";
+
+    private var mRealTextWidth:Number;
+    private var mRealTextHeight:Number;
 
     private var mFormat:ElementFormat;
+    private var mIsFormatChanged:Boolean = true;
+    private var mTextBlock:TextBlock;
+    private var mIsBlockChanged:Boolean = true;
 
-    private var mContent:String;
+    private var mText:Vector.<TextLine> = new Vector.<TextLine>;
 
     public function set content(txt:String):void {
-      setStyle(txt);
+      setStyle(TEXT_CONTENT, txt);
       setDirty();
       invalidateSize();
     }
 
-    public function Label(text:String, cssorid:String = null, id:String = null) {
+    public function Label(text:String = "Label", cssorid:String = null, id:String = null) {
       super(cssorid, id);
-      mStyle.addInheritable(FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN, TEXT_VALIGN);
+      style.addInheritable(FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN, TEXT_VALIGN);
       content = text;
     }
 
-    protected override function commitProperties():void {
-      var changed:Vector.<String> = mStyle.changed;
-      var isAlignChanged:Boolean = fce.contains(Vector.<String>([TEXT_ALIGN, TEXT_VALIGN]));
+    protected override function coreCommitProperties():void {
+      if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT]))) mIsFormatChanged = true;
+      if(hasChanged(Vector.<String>([TEXT_CONTENT]))) mIsBlockChanged = true;
+    }
 
-      if(fce.contains(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT]))) {
-        this.redraw();
-        isAlignChanged = false;
-      }
+    protected override function coreMeasure():void {
+      changeFormat();
+      changeBlock();
+    }
 
-      if(isAlignChanged) this.coreAlign();
+    protected override function coreLayout():void {
+      coreX = mViewPort.x;
+      coreY = mViewPort.y;
     }
 
     protected override function coreRedraw():void {
-      mFormat = new ElementFormat(new FontDescription(style.getString(FONT_FAMILY), style.getString(FONT_WEIGHT)),
-                                  style.getNumber(FONT_SIZE), style.getNumber(FONT_COLOR));
-      var textElement:TextElement = new TextElement(mContent, mFormat);
-      var textBlock:TextBlock = new TextBlock();
-      textBlock.content = textElement;
-
       clean();
 
-      var width:Number = mWidth;
-      if(width < 0) width = 4000;
-      mTextWidth = 0;
-      mTextHeight = 0;
-
       var tl:TextLine = null;
-      while(tl = textBlock.createTextLine(tl, width)) {
+      mRealTextHeight = 0;
+      mRealTextWidth = 0;
+      while(tl = mTextBlock.createTextLine(tl, mViewPort.width)) {
         addChild(tl);
-        mTextWidth = Math.max(mTextWidth, tl.width);
-        mTextHeight += tl.height;
+        mRealTextWidth = Math.max(mRealTextHeight, tl.width);
+        mRealTextHeight += tl.height + tl.descent;
       }
-      if(textBlock.lastLine) mTextHeight -= textBlock.lastLine.descent;
 
       coreAlign();
     }
@@ -81,32 +80,29 @@ package com.minimalui.controls {
       var tl:TextLine = null;
 
      var yy:Number = 0;
-      if(mHeight > 0) {
-        switch(style.getValue(TEXT_VALIGN)) {
-        case "middle":
-          yy = (mHeight - mTextHeight) / 2;
-          break;
-        case "bottom":
-          yy = mHeight - mTextHeight;
-          break;
-        }
-      }
+     switch(style.getValue(TEXT_VALIGN) || "top") {
+     case "middle":
+       yy = (mViewPort.height - mRealTextHeight) / 2;
+       break;
+     case "bottom":
+       yy = mViewPort.height - mRealTextHeight;
+       break;
+     }
+     if(yy < 0) yy = 0;
 
-      var width:Number = mWidth;
-      if(width < 0) width = mTextWidth;
       for(var i:uint = 0; i < numChildren; ++i) {
         tl = getChildAt(i) as TextLine;
-        tl.y = yy + tl.ascent;
-        yy += tl.height;
-        switch(style.getValue(TEXT_ALIGN)) {
+        tl.y = yy + tl.height;
+        yy += tl.height + tl.descent;
+        switch(style.getValue(TEXT_ALIGN) || "left") {
         case "center":
-          tl.x = (width - tl.width) / 2;
+          tl.x = (mViewPort.width - tl.width) / 2;
           break;
         case "left":
           tl.x = 0;
           break;
         case "right":
-          tl.x = width - tl.width;
+          tl.x = mViewPort.width - tl.width;
           break;
         }
       }
@@ -114,6 +110,42 @@ package com.minimalui.controls {
 
     protected function clean():void {
       while(numChildren > 0) removeChildAt(0);
+    }
+
+    private function changeFormat():void {
+      if(!mIsFormatChanged) return;
+      mFormat = new ElementFormat(new FontDescription(style.getString(FONT_FAMILY) || "sans",
+                                                      style.getString(FONT_WEIGHT) || "bold"),
+                                  style.getNumber(FONT_SIZE) || 14,
+                                  style.getNumber(FONT_COLOR) || 0x00);
+      mIsFormatChanged = false;
+      mIsBlockChanged = true;
+      setChanged();
+    }
+
+    private function changeBlock():void {
+      if(!mIsBlockChanged) return;
+      var textElement:TextElement = new TextElement(getStyle("content") as String, mFormat);
+      mTextBlock = new TextBlock();
+      mTextBlock.content = textElement;
+
+      var textWidth:Number = 0;
+      var textHeight:Number = 0;
+
+      mText.splice(0, mText.length);
+      var tl:TextLine = null;
+      var w:Number = mStyle.hasValue("width") ? mStyle.getNumber("width") : 4000;
+      while(tl = mTextBlock.createTextLine(tl, w)) {
+        mText.push(tl);
+        textWidth = Math.max(textWidth, tl.width);
+        textHeight += tl.height+tl.descent;
+      }
+
+      mMeasuredWidth = Math.ceil(Math.max(mStyle.getNumber("width"), textWidth));
+      mMeasuredHeight = Math.ceil(Math.max(mStyle.getNumber("height"), textHeight));
+
+      mIsBlockChanged = false;
+      setChanged();
     }
   }
 }

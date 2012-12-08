@@ -7,52 +7,56 @@ package com.minimalui.base {
   import com.minimalui.events.FieldChangeEvent;
   import com.minimalui.events.StyleNewParentEvent;
   import com.minimalui.events.ElementResizeEvent;
+  import com.minimalui.decorators.Border;
 
   public class Element extends Sprite {
     protected var defaultStyle:Style;
-    protected var mStyle:Style;
-    protected var mMisuredWidth:Number;
-    protected var mMisuredHeight:Number;
+    protected var mStyle:Style = new Style;
+    protected var mMeasuredWidth:int;
+    protected var mMeasuredHeight:int;
     protected var mViewPort:Rectangle;
     protected var mParent:BaseContainer;
+
+    protected var mDecorators:Vector.<Decorator> = new Vector.<Decorator>;
 
     private var mId:String;
     private var mDirty:Boolean = false;
     private var mResized:Boolean = false;
     private var mLayoutManager:LayoutManager;
     private var mIsChanged:Boolean = false;
+    private var mCoreDecorators:Vector.<Decorator> = new Vector.<Decorator>;
 
     private var mResizableAttributes:Array = ["width", "height"];
 
-    public final get isChanged():void { return mIsChanged; }
-    protected final setChanged():void { mIsChanged = true; }
+    public final function get isChanged():Boolean { return mIsChanged; }
+    protected final function setChanged():void { mIsChanged = true; }
 
     public final function get layoutManager():LayoutManager {
       if(mLayoutManager) return mLayoutManager;
-      if(mParent) return mParent.LayoutManager();
+      if(mParent) return mParent.layoutManager;
       return LayoutManager.getDefault();
     }
 
-    public final function get parent():BaseContainer { return mParent; }
-    protected final function set _parent(p:BaseContainer):void {
+    public final function getParent():BaseContainer { return mParent; }
+    public final function set _parent(p:BaseContainer):void {
       setDirty();
       mParent = p;
       if(mParent == null) mStyle.parent = null;
       else mStyle.parent = mParent.style;
     }
 
-    public function get misuredWidth():Number { return mMisuredWidth; }
-    public function get misuredHeight():Number { return mMisuredHeight; }
+    public function get measuredWidth():int { return mMeasuredWidth; }
+    public function get measuredHeight():int { return mMeasuredHeight; }
 
     public final function get isDirty():Boolean { return mDirty; }
-    protected final function setDirty():void {
+    public final function setDirty():void {
       if(mDirty) return;
       mDirty = true;
       layoutManager.setDirty(this);
     }
 
     public final function get isSizeValid():Boolean { return mResized; }
-    protected final function invalidateSize():void {
+    public final function invalidateSize():void {
       if(mResized) return;
       mResized = true;
       layoutManager.invalidateSize(this);
@@ -60,6 +64,20 @@ package com.minimalui.base {
 
     public final override function set x(xx:Number):void { setStyle("x", xx); }
     public final override function set y(yy:Number):void { setStyle("y", yy); }
+
+    protected final function set coreX(xx:Number):void { super.x = xx; }
+    protected final function set coreY(yy:Number):void { super.y = yy; }
+
+    public override function get height():Number {
+      if(mResized) measure();
+      if(!mViewPort) return Math.max(super.height, measuredHeight);
+      return Math.max(mViewPort.height, super.height);
+    }
+    public override function get width():Number {
+      if(mResized) measure();
+      if(!mViewPort) return Math.max(super.width, measuredWidth);
+      return Math.max(mViewPort.width, super.width);
+    }
 
     public final override function set width(w:Number):void { setStyle("width", w); }
     public final override function set height(h:Number):void { setStyle("height", h); }
@@ -69,24 +87,26 @@ package com.minimalui.base {
     public function get style():Style { return mStyle; }
 
     public function Element(idorcss:String = null, id:String = null) {
-      if(id == null && idorcss.match(/\w+/)) {
-        mId = id;
+      mCoreDecorators.push(new Border(this));
+      if(!id && !idorcss) return;
+      if(!id && idorcss && idorcss.match(/^[\w]+[\w\d\-]*$/)) {
+        mId = idorcss;
         return;
       }
       mId = id;
-      if(idorcss != "" && idorcss != null) setStyles(idorcss);
+      if(idorcss != null) setStyles(idorcss);
     }
 
-    public function setStyle(name:String, v:Object):Object {
+    public function setStyle(name:String, v:Object):void {
       if(mResizableAttributes.indexOf(name) >= 0) invalidateSize();
       setDirty();
-      return mStyle.setValue(name, v);
+      mStyle.setValue(name, v);
     }
 
     public function getStyle(name:String):Object { return mStyle.getValue(name); }
 
     public function setStyles(css:String):void {
-      throw new Error("Set styles as css string is not implemented yet");
+      mStyle.setCSS(css);
     }
 
     public final function commitProperties():void {
@@ -102,6 +122,17 @@ package com.minimalui.base {
 
     public final function layout(viewPort:Rectangle = null):void {
       mViewPort = viewPort;
+      if(!mViewPort) {
+        mViewPort = new Rectangle(0, 0, measuredWidth, measuredHeight);
+        if(mStyle.hasValue("x")) mViewPort.x = mStyle.getNumber("x") || 0;
+        if(mStyle.hasValue("y")) mViewPort.y = mStyle.getNumber("y") || 0;
+        if(mStyle.hasValue("width")) mViewPort.width = mStyle.getNumber("width") || measuredWidth;
+        if(mStyle.hasValue("height")) mViewPort.height = mStyle.getNumber("height") || measuredHeight;
+      }
+      mViewPort.width = Math.ceil(mViewPort.width);
+      mViewPort.height = Math.ceil(mViewPort.height);
+      coreX = Math.round(mViewPort.x);
+      coreY = Math.round(mViewPort.y);
       coreLayout();
       mResized = false;
       redraw();
@@ -109,9 +140,18 @@ package com.minimalui.base {
 
     public final function redraw():void {
       if(!isChanged) return;
+      var d:Decorator;
       graphics.clear();
+      for each(d in mCoreDecorators) d.onBeforeRedraw();
       coreRedraw();
+      for each(d in mCoreDecorators) d.onAfterRedraw();
       mIsChanged = false;
+    }
+
+    protected function hasChanged(values:Vector.<String>):Boolean {
+      return mStyle.changed.some(function(v:String, k:int, a:Vector.<String>):Boolean {
+          return this.indexOf(v) >= 0;
+        }, values);
     }
 
     protected function coreCommitProperties():void { "Implement ME!"; }

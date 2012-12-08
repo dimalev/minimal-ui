@@ -33,10 +33,9 @@ package com.minimalui.base {
 
     public function Style(fields:Object = null) {
       if(fields is String) setCSS(fields as String);
-      this.parent = parent;
     }
 
-    public function addInheritable(names:String...):void {
+    public function addInheritable(...names):void {
       for each(var name:String in names) {
         if(isInheritable(name)) continue;
         mInheritableFields.push(name);
@@ -54,13 +53,31 @@ package com.minimalui.base {
       for(var name:String in fields) setValue(name, fields[name]);
     }
 
-    public function getValue(name:String):Object {
-      if(!hasValue(name)) return null;
-      return hasOwnValue(name) ? mData[name] : (isInheritable(name) ? mParent.getValue(name) : null);
+    public function setCSS(css:String):void {
+      var pairs:Array = css.split(";");
+      for each(var p:String in pairs) {
+        var spl:Array = p.split(":");
+        if(spl.length != 2) continue;
+        var name:String = spl[0].replace(/(^\s+|\s+$)/g, "");
+        var value:String = spl[1].replace(/(^\s+|\s+$)/g, "");
+        trace("name [" + name + "]");
+        trace("value [" + value + "]");
+        if(value.match(/\d+/)) setValue(name, Number(value));
+        else setValue(name, value);
+      }
     }
 
-    public function getString(name:String):String { return getValue(name) as String; }
-    public function getNumber(name:String):Number { return getValue(name) as Number; }
+    public function getValue(name:String):Object {
+      if(!hasValue(name)) return null;
+      return hasOwnValue(name) ? mData[name] : (isInheritable(name) ? mParent.getValue2(name) : null);
+    }
+
+    protected function getValue2(name:String):Object {
+      return hasOwnValue(name) ? mData[name] : mParent.getValue2(name);
+    }
+
+    public function getString(name:String):String { return hasValue(name) ? (getValue(name) as String) : ""; }
+    public function getNumber(name:String):Number { return hasValue(name) ? (getValue(name) as Number) : 0; }
 
     public function setValue(name:String, value:Object):void {
       if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
@@ -70,7 +87,11 @@ package com.minimalui.base {
     }
 
     public function hasValue(name:String):Boolean {
-      return hasOwnValue(name) || (mParent && mParent.hasValue(name));
+      return hasOwnValue(name) || (isInheritable(name) && mParent && mParent.hasValue2(name));
+    }
+
+    protected function hasValue2(name:String):Boolean {
+      return hasOwnValue(name) || (mParent && mParent.hasValue2(name));
     }
 
     public function hasOwnValue(name:String):Boolean {
@@ -87,27 +108,28 @@ package com.minimalui.base {
 
     public function get changed():Vector.<String> {
       if(!mParent) return mChangedFields;
-      var all:Vector.<String> = mStyle.allChanged.filter(
-                                                         function(elem:String, i:int, a:Vector.<String>) {
-                                                           return mInheritableFields.indexOf(elem) >= 0;
-                                                         }
-                                                         );
-      return all.sort().filter(
-                               function(value:String, i:int, a:Vector.<String>) {
-                                 var prev = this.prev;
-                                 this.prev = value;
-                                 return prev != value;
-                               }, { prev: null });
+      var all:Vector.<String> = mParent.allChanged.filter(
+                                                          function(elem:String, i:int, a:Vector.<String>):Boolean {
+                                                            return mInheritableFields.indexOf(elem) >= 0;
+                                                          }
+                                                          );
+      return all.sort(Array.CASEINSENSITIVE).filter(
+                                                    function(value:String, i:int, a:Vector.<String>):Boolean {
+                                                      var prev:String = this.prev;
+                                                      this.prev = value;
+                                                      return prev != value;
+                                                    }, { prev: null });
     }
 
     protected function get allChanged():Vector.<String> {
       if(!mParent) return changed;
       var res:Vector.<String> = mParent.allChanged;
-      return res.concat(mChangedFields).sort().filter(function(value:String, i:int, a:Vector.<String>) {
-                                                 var prev = this.prev;
-                                                 this.prev = value;
-                                                 return prev != value;
-                                               }, { prev: null });
+      return res.concat(mChangedFields).sort(Array.CASEINSENSITIVE)
+        .filter(function(value:String, i:int, a:Vector.<String>):Boolean {
+            var prev:String = this.prev;
+            this.prev = value;
+            return prev != value;
+          }, { prev: null });
     }
 
     public function cleanChanged():void {
@@ -122,7 +144,6 @@ package com.minimalui.base {
     protected function addChanged(name:String):void {
       if(mChangedFields.indexOf(name) >= 0) return;
       mChangedFields.push(name);
-      onChange();
     }
   }
 }

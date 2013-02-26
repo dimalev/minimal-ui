@@ -21,7 +21,8 @@ package com.minimalui.containers {
       var lastVerticalMargin:Number = Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("vertical-spacing"));
       var w:Number = mStyle.getNumber("padding-left") + mStyle.getNumber("padding-right");
       var h:Number= lastVerticalMargin;
-      for each(var c:Element in mChildren) {
+      for(var i:uint = 0; i < numChildren; ++i) {
+        var c:Element = getChildAt(i) as Element;
         c.measure();
         var cw:Number = c.measuredWidth;
         w = Math.max(w, cw + Math.max(mStyle.getNumber("padding-left"),  c.style.getNumber("margin-left") )
@@ -42,23 +43,27 @@ package com.minimalui.containers {
 
     protected override function coreLayout():void {
       var c:Element;
+      var childMarginTop:Number = numChildren > 0 ? (getChildAt(0) as Element).style.getNumber("margin-top") : 0;
+      var childMarginBottom:Number =
+        numChildren > 0 ? (getChildAt(numChildren-1) as Element).style.getNumber("margin-bottom") : 0;
       var contentH:Number = mRealHeight
-        - Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("vertical-spacing"), mChildren[0].style.getNumber("margin-top"))
-        - Math.max(mStyle.getNumber("padding-bottom"), mStyle.getNumber("vertical-spacing"), mChildren[mChildren.length-1].style.getNumber("margin-bottom"))
+        - Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("vertical-spacing"), childMarginTop)
+        - Math.max(mStyle.getNumber("padding-bottom"), mStyle.getNumber("vertical-spacing"), childMarginBottom)
       var contentW:Number = mViewPort.width;
 
       var lastVerticalMargin:Number = 4000;
       var yy:Number = (mViewPort.height - contentH) / 2;
       switch(mStyle.getString("valign") || "middle") {
       case "top":
-        yy = Math.max(mStyle.getNumber("padding-top"), mChildren[0].style.getNumber("margin-top"));
+        yy = Math.max(mStyle.getNumber("padding-top"), childMarginTop);
         break;
       case "bottom":
         yy = mViewPort.height - contentH;
         break;
       }
 
-      for each(c in mChildren) {
+      for(var i:uint = 0; i < numChildren; ++i) {
+        c = getChildAt(i) as Element;
         if(c.style.getNumber("margin-top") > lastVerticalMargin)
           yy += (c.style.getNumber("margin-top") - lastVerticalMargin);
 

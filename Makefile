@@ -52,6 +52,9 @@ ${DEST_DIR}/${TEST_APP}: ${TEST_DIR}/${TEST_APP_NAME} ${TEST_RUNNER_SRC} ${TEST_
            --library-path+=${TEST_LIBS}:${APP_LIBS} \
            ${TEST_DIR}/${TEST_APP_NAME}
 
+docs:
+	asdoc -source-path ${SRC_DIR} -doc-sources ${SRC_DIR} -exclude-sources src/com/minimalui/containers/Box.as -output docs/
+
 clean:
 	-rm ${DEST_DIR}/${DEST_NAME}
 	-rm ${DEST_DIR}/${TEST_APP}

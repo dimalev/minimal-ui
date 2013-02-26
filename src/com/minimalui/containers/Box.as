@@ -18,7 +18,6 @@ package com.minimalui.containers {
     }
 
     protected override function coreMeasure():void {
-      trace("Box measure");
       var l:Number = 0;
       var r:Number = 0;
       var lastHorizontalMargin:Number = 0;
@@ -42,7 +41,6 @@ package com.minimalui.containers {
     }
 
     protected override function coreLayout():void {
-      trace("Box layout " + mViewPort.width + "x" + mViewPort.height);
       var c:Element;
       var contentW:Number = mRealWidth
         - Math.max(mStyle.getNumber("padding-left"), mChildren[0].style.getNumber("margin-left"))
@@ -79,7 +77,6 @@ package com.minimalui.containers {
           break;
         }
 
-        trace(xx + " " + " " + yy + " " + c.measuredWidth + " " + c.measuredHeight);
         c.layout(new Rectangle(xx, yy, c.measuredWidth, c.measuredHeight));
 
         xx += c.measuredWidth + (lastHorizontalMargin = c.style.getNumber("margin-right"));

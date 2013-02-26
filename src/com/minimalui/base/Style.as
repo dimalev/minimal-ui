@@ -6,7 +6,6 @@ package com.minimalui.base {
   import com.minimalui.events.StyleNewParentEvent;
 
   public class Style extends EventDispatcher {
-    public static var doTrace:Boolean = false;
     private var mFields:Vector.<String> = new Vector.<String>;
     private var mChangedFields:Vector.<String> = new Vector.<String>;
     private var mInheritableFields:Vector.<String> = new Vector.<String>;
@@ -60,9 +59,7 @@ package com.minimalui.base {
         if(spl.length != 2) continue;
         var name:String = spl[0].replace(/(^\s+|\s+$)/g, "");
         var value:String = spl[1].replace(/(^\s+|\s+$)/g, "");
-        trace("name [" + name + "]");
-        trace("value [" + value + "]");
-        if(value.match(/\d+/)) setValue(name, Number(value));
+        if(value.match(/^\s*(0x[0-9a-fA-F]+?|\d+)\s*$/)) setValue(name, Number(value));
         else setValue(name, value);
       }
     }
@@ -113,7 +110,7 @@ package com.minimalui.base {
                                                             return mInheritableFields.indexOf(elem) >= 0;
                                                           }
                                                           );
-      return all.sort(Array.CASEINSENSITIVE).filter(
+      return all.concat(mChangedFields).sort(Array.CASEINSENSITIVE).filter(
                                                     function(value:String, i:int, a:Vector.<String>):Boolean {
                                                       var prev:String = this.prev;
                                                       this.prev = value;

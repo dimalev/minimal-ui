@@ -46,8 +46,9 @@ package com.minimalui.controls {
      */
    public function Button(text:String = "Button", idorcss:String = null, id:String = null) {
       super(null, idorcss, id);
+      setStyle("text", text);
       useHandCursor = buttonMode = true;
-      construct(text);
+      construct();
       addMouseListeners();
       cleanDecorators();
     }
@@ -131,8 +132,8 @@ package com.minimalui.controls {
       setChanged();
     }
 
-    private function construct(text:String):void {
-      mLabel = new Label(text);
+    private function construct():void {
+      mLabel = new Label(getStyle("text") as String);
       addChild(mLabel);
     }
   }

@@ -18,8 +18,7 @@ package com.minimalui.containers {
     }
 
     protected override function coreMeasure():void {
-      var lastHorizontalMargin:Number = Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("horizontal-spacing"));
-      var w:Number = lastHorizontalMargin;
+      var f:Vector.<Number> = Vector.<Number>([mStyle.getNumber("padding-left")]);
       var h:Number= mStyle.getNumber("padding-top") + mStyle.getNumber("padding-bottom");
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
@@ -29,16 +28,11 @@ package com.minimalui.containers {
                            + Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"))
                      );
 
-        var cw:Number = c.measuredWidth;
-        w += cw;
-        if(c.style.getNumber("margin-left") > lastHorizontalMargin)
-          w += (c.style.getNumber("margin-left") - lastHorizontalMargin);
-        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("horizontal-spacing"));
-        w += lastHorizontalMargin;
+        f.push(c.style.getNumber("margin-left"), c.measuredWidth, c.style.getNumber("margin-right"));
       }
-      if(mStyle.getNumber("padding-right") > lastHorizontalMargin)
-        w += (mStyle.getNumber("padding-right") - lastHorizontalMargin);
-      mMeasuredWidth = Math.max(mRealWidth = w, mStyle.getNumber("width"));
+      f.push(mStyle.getNumber("padding-right"));
+      mRealWidth = pack(f, mStyle.getNumber("spacing"));
+      mMeasuredWidth = Math.max(mRealWidth, mStyle.getNumber("width"));
       mMeasuredHeight = Math.max(mRealHeight = h, mStyle.getNumber("height"));
     }
 

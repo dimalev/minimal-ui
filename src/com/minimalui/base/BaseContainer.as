@@ -4,7 +4,17 @@ package com.minimalui.base {
   import com.minimalui.decorators.Border;
   import com.minimalui.decorators.Background;
 
+  /**
+   * Basic container. Groups elements independently one above another, while aligning them according to settings.
+   * Brings valuable tool functions for such derives as Horizontal and Vertical box.
+   */
   public class BaseContainer extends Element {
+    /**
+     * Constructs container with given CSS properties and/or id.
+     *
+     * @param idorcss treated as id, if this is only parameter, or CSS properties, if not, or not match \w+ pattern.
+     * @param id id of the element, if passed.
+     */
     public function BaseContainer(idorcss:String = null, id:String = null) {
       super(idorcss, id);
       addDecorator(new Border(this));
@@ -74,13 +84,16 @@ package com.minimalui.base {
       setChanged();
     }
 
-    protected override function coreCommitProperties():void {
-      super.coreCommitProperties();
-      // for(var i:uint = 0; i < numChildren; ++i) {
-      //   var c:Element = getChildAt(i) as Element;
-      //   if(null == c) continue;
-      //   c.commitProperties();
-      // }
+    /**
+     * Tool function.
+     */
+    protected function pack(f:Vector.<Number>, s:Number):Number {
+      var N:uint = (f.length - 2) / 3;
+      var res:Number = 0;
+      for(var i:uint = 1; i <= N; ++i)
+        res += Math.max(f[i*3-3], f[i*3-2], s) + f[i*3-1];
+      res += Math.max(f[i*3-3], f[i*3-2], s);
+      return res;
     }
   }
 }

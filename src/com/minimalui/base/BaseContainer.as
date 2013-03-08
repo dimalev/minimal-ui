@@ -60,7 +60,6 @@ package com.minimalui.base {
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
         if(null == c) continue;
-        c.measure();
         var innerw:Number = c.measuredWidth
           + Math.max(mStyle.getNumber("padding-left"), c.style.getNumber("margin-left"))
           + Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"));

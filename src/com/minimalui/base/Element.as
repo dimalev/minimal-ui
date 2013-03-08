@@ -138,7 +138,7 @@ package com.minimalui.base {
     /**
      * If element has a valid measured size.
      */
-    public final function get isSizeValid():Boolean { return mResized; }
+    public final function get isSizeInvalid():Boolean { return mResized; }
     /**
      * Set element to be measured as soon as possible.
      */
@@ -358,5 +358,7 @@ package com.minimalui.base {
     }
 
     protected function coreRedraw():void { "Implement ME!"; }
+
+    public override function toString():String { return "[" + super.toString() + "(id="+mId+")]"; }
   }
 }

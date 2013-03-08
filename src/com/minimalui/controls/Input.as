@@ -39,12 +39,6 @@ package com.minimalui.controls {
       addListeners();
     }
 
-    // protected override function coreMeasure():void {
-    //   mHolder.measure();
-    //   mMeasuredWidth = style.hasValue("width") ? style.getNumber("width") : Math.max(75, mHolder.measuredWidth);
-    //   mMeasuredHeight= style.hasValue("height") ? style.getNumber("height") : Math.max(25, mHolder.measuredHeight);
-    // }
-
     protected override function coreLayout():void {
       super.coreLayout();
       mInput.height = mViewPort.height;

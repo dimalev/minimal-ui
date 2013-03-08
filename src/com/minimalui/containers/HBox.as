@@ -22,7 +22,6 @@ package com.minimalui.containers {
       var h:Number= mStyle.getNumber("padding-top") + mStyle.getNumber("padding-bottom");
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
-        c.measure();
         var ch:Number = c.measuredHeight;
         h = Math.max(h, ch + Math.max(mStyle.getNumber("padding-top"),    c.style.getNumber("margin-top")   )
                            + Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"))

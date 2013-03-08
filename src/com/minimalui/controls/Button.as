@@ -18,7 +18,11 @@ package com.minimalui.controls {
    * Implements basic Button.
    */
   public class Button extends HBox {
+    public static const TEXT:String = "text";
+    public static const BACKGROUND_COLOR:String = "background-color";
+    public static const BACKGROUND_COLOR_HOVER:String = "background-color-hover";
     public static const DISABLED:String = "disabled";
+
     private var mLabel:Label;
     private var mCallback:Function;
     private var mDisabled:Boolean = false;
@@ -46,7 +50,7 @@ package com.minimalui.controls {
      */
    public function Button(text:String = "Button", idorcss:String = null, id:String = null) {
       super(null, idorcss, id);
-      setStyle("text", text);
+      setStyle(TEXT, text);
       useHandCursor = buttonMode = true;
       construct();
       addMouseListeners();
@@ -55,21 +59,24 @@ package com.minimalui.controls {
 
     protected override function coreCommitProperties():void {
       if(hasChanged(Vector.<String>([DISABLED]))) {
-        mDisabled = useHandCursor = buttonMode = getStyle("disabled") == "true";
+        mDisabled = useHandCursor = buttonMode = getStyle(DISABLED) == "true";
         setChanged();
       }
-      mLabel.setStyle("content", getStyle("text"));
+      if(hasChanged(Vector.<String>([TEXT]))) {
+        mLabel.setStyle(Label.TEXT_CONTENT, getStyle(TEXT));
+      }
       super.coreCommitProperties();
     }
 
     protected override function coreRedraw():void {
-      var color:Number = 0xff0000;
+      var color:Number = style.hasValue(BACKGROUND_COLOR) ? style.getNumber(BACKGROUND_COLOR) : 0xaa0000;
       var padding:Number = 0;
       if(mIsMouseOver) {
-          color = 0x00ff00;
+          color = style.hasValue(BACKGROUND_COLOR_HOVER) ? style.getNumber(BACKGROUND_COLOR_HOVER) : 0x00aa00;
           if(mIsMouseDown) padding = 2;
       }
-      var cc:Array = [color, Tools.rgbReduce(color, 0.3, 0.3, 0.3)];
+      var red:Number = style.hasValue("background-reduction") ? style.getNumber("background-reduction") : 0.3;
+      var cc:Array = [color, Tools.rgbReduce(color, red, red, red)];
       var aa:Array = [1,1];
       var bb:Array = [0,255];
       var xx:Matrix = new Matrix();
@@ -79,13 +86,15 @@ package com.minimalui.controls {
       graphics.drawRect(0,0, width, height);
       graphics.endFill();
       if(!mIsMouseOver) return;
-      aa = [0.6,0];
-      xx.createGradientBox(100, 100, 0, mMouseX - 50, height - 50);// * Math.PI / 180);
+      aa = [0.5,0];
+      var R:Number = style.hasValue("light-radius") ? style.getNumber("light-radius") : 25;
+      xx.createGradientBox(2*R, 2*R, 0, mMouseX - R, mMouseY - R);
       graphics.lineStyle();
-      graphics.beginGradientFill(GradientType.RADIAL, cc, aa, bb, xx);
-      var sx:Number = Math.max(0, mMouseX - 50);
-      var sy:Number = Math.max(0, height - 50);
-      graphics.drawRect(sx, sy, Math.min(sx + 100, width) - sx, Math.min(sy + 100, height) - sy);
+      var lc:Number = style.hasValue("light-color") ? style.getNumber("light-color") : 0xffffff;
+      graphics.beginGradientFill(GradientType.RADIAL, [lc,lc], aa, bb, xx);
+      var sx:Number = Math.max(0, mMouseX - R);
+      var sy:Number = Math.max(0, mMouseY - R);
+      graphics.drawRect(sx, sy, Math.min(sx + 2*R, width) - sx, Math.min(sy + 2*R, height) - sy);
       graphics.endFill();
     }
 

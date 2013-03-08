@@ -8,6 +8,7 @@ package com.minimalui.factories {
   import com.minimalui.containers.HBox;
   import com.minimalui.controls.Label;
   import com.minimalui.controls.Button;
+  import com.minimalui.controls.Input;
 
   public class XMLFactory {
     public var mCSS:Object = {};
@@ -100,6 +101,7 @@ package com.minimalui.factories {
       case "vbox": return VBox;
       case "label": return Label;
       case "button": return Button;
+      case "input": return Input;
       }
       return null;
     }

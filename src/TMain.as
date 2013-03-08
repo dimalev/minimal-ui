@@ -39,6 +39,7 @@ hbox {\
           <button text="Play" id="button-play" />
           <button text="Load" id="button-load" />
           <button text="Exit" id="button-exit" />
+        <input holder="Enter something" />
         </vbox>
         <vbox id="vbox-right">
           <label content="Settings" id="label-settings" />

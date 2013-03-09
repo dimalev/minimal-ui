@@ -37,8 +37,8 @@ hbox {\
         <vbox margin-right="20" id="vbox-left">
           <label content="Game" id="label-Game" />
           <button text="Play" id="button-play" />
-          <button text="Load" id="button-load" />
-          <button text="Exit" id="button-exit" />
+          <button text="Load" disabled="true" id="button-load" />
+          <button text="Exit" disabled="true" id="button-exit" />
         <input holder="Enter something" />
         </vbox>
         <vbox id="vbox-right">

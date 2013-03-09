@@ -7,7 +7,7 @@ package com.minimalui.controls {
 
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Decorator;
-  import com.minimalui.containers.HBox;
+  // import com.minimalui.containers.HBox;
   import com.minimalui.decorators.Border;
   import com.minimalui.decorators.Background;
   import com.minimalui.tools.Tools;
@@ -15,9 +15,10 @@ package com.minimalui.controls {
   /**
    * Implements basic Button.
    */
-  public class BaseButton extends HBox {
+  public class BaseButton extends BaseContainer {
     public static const TEXT:String = "text";
     public static const BACKGROUND_COLOR:String = "background-color";
+    public static const BACKGROUND_DISABLED_COLOR:String = "background-disabled-color";
     public static const DISABLED:String = "disabled";
 
     private var mLabel:Label;
@@ -52,7 +53,7 @@ package com.minimalui.controls {
      * @param id id of the element.
      */
    public function BaseButton(idorcss:String = null, id:String = null) {
-      super(null, idorcss, id);
+      super(idorcss, id);
       useHandCursor = buttonMode = true;
       construct();
       addMouseListeners();
@@ -60,7 +61,7 @@ package com.minimalui.controls {
 
     protected override function coreCommitProperties():void {
       if(hasChanged(Vector.<String>([DISABLED]))) {
-        useHandCursor = buttonMode = getStyle(DISABLED) == "true";
+        useHandCursor = buttonMode = !(getStyle(DISABLED) == "true");
         setChanged();
       }
       if(hasChanged(Vector.<String>([TEXT]))) {

@@ -22,7 +22,6 @@ package com.minimalui.containers {
       var f:Vector.<Number> = Vector.<Number>([mStyle.getNumber("padding-top")]);
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
-        c.measure();
         var cw:Number = c.measuredWidth;
         w = Math.max(w, cw + Math.max(mStyle.getNumber("padding-left"),  c.style.getNumber("margin-left") )
                            + Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"))
@@ -42,8 +41,8 @@ package com.minimalui.containers {
       var childMarginBottom:Number =
         numChildren > 0 ? (getChildAt(numChildren-1) as Element).style.getNumber("margin-bottom") : 0;
       var contentH:Number = mRealHeight
-        - Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("vertical-spacing"), childMarginTop)
-        - Math.max(mStyle.getNumber("padding-bottom"), mStyle.getNumber("vertical-spacing"), childMarginBottom)
+        - Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("spacing"), childMarginTop)
+        - Math.max(mStyle.getNumber("padding-bottom"), mStyle.getNumber("spacing"), childMarginBottom)
       var contentW:Number = mViewPort.width;
 
       var lastVerticalMargin:Number = 4000;
@@ -54,6 +53,9 @@ package com.minimalui.containers {
         break;
       case "bottom":
         yy = mViewPort.height - contentH;
+        break;
+      case "middle":
+        yy = (mViewPort.height - contentH) / 2;
         break;
       }
 
@@ -79,7 +81,7 @@ package com.minimalui.containers {
 
         c.layout(new Rectangle(xx, yy, c.measuredWidth, c.measuredHeight));
 
-        lastVerticalMargin = Math.max(c.style.getNumber("margin-bottom"), mStyle.getNumber("vertical-spacing"));
+        lastVerticalMargin = Math.max(c.style.getNumber("margin-bottom"), mStyle.getNumber("spacing"));
         yy += c.measuredHeight + lastVerticalMargin;
       }
       setChanged();

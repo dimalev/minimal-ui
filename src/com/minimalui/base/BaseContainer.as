@@ -1,8 +1,6 @@
 package com.minimalui.base {
   import flash.display.DisplayObject;
   import flash.geom.Rectangle;
-  import com.minimalui.decorators.Border;
-  import com.minimalui.decorators.Background;
 
   /**
    * Basic container. Groups elements independently one above another, while aligning them according to settings.
@@ -17,8 +15,6 @@ package com.minimalui.base {
      */
     public function BaseContainer(idorcss:String = null, id:String = null) {
       super(idorcss, id);
-      addDecorator(new Border(this));
-      addDecorator(new Background(this));
     }
 
     public override function addChild(d:DisplayObject):DisplayObject {

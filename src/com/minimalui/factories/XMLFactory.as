@@ -59,9 +59,11 @@ package com.minimalui.factories {
       var d:DecoratorDescriptor;
       var el:Element = new (name2class(xml.localName()));
       var styles:String = "";
+      var dd:Vector.<DecoratorDescriptor> = new Vector.<DecoratorDescriptor>;
       if(mCSSperObject.hasOwnProperty(xml.localName())) {
         styles += mCSSperObject[xml.localName()].stylesLine;
-        for each(d in mCSSperObject[xml.localName()].decorators) el.addDecorator(d.instanceFor(el));
+        for each(d in mCSSperObject[xml.localName()].decorators)
+          if(dd.indexOf(d) < 0) dd.push(d);
       }
       for each(var attribute:XML in xml.attributes()) {
         var name:String = attribute.localName();
@@ -70,7 +72,8 @@ package com.minimalui.factories {
           for each(var c:String in classes) {
             if(!mCSS.hasOwnProperty(c)) continue;
             styles += mCSS[c].stylesLine;
-            for each(d in mCSS[c].decorators) el.addDecorator(d.instanceFor(el));
+            for each(d in mCSS[c].decorators)
+              if(dd.indexOf(d) < 0) dd.push(d);
           }
         } else {
           if(name == "margin") el.margins = Number(attribute.toString());
@@ -80,11 +83,14 @@ package com.minimalui.factories {
             styles += name + ": " + attribute.toString() + ";";
             for each(d in mDecorators) {
               if(d.styles.indexOf(name) < 0) continue;
-              el.addDecorator(d.instanceFor(el));
+              if(dd.indexOf(d) < 0) dd.push(d);
             }
           }
         }
       }
+
+      for each(d in dd) el.addDecorator(d.instanceFor(el));
+
       el.setStyles(styles);
       if(!(el is BaseContainer)) return el;
       var bc:BaseContainer = BaseContainer(el);
@@ -96,7 +102,6 @@ package com.minimalui.factories {
 
     public function name2class(name:String):Class {
       switch(name) {
-      // case "box": return Box;
       case "hbox": return HBox;
       case "vbox": return VBox;
       case "label": return Label;

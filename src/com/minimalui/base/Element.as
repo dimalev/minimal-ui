@@ -7,6 +7,8 @@ package com.minimalui.base {
   import com.minimalui.events.FieldChangeEvent;
   import com.minimalui.events.StyleNewParentEvent;
   import com.minimalui.events.ElementResizeEvent;
+  import com.minimalui.decorators.Border;
+  import com.minimalui.decorators.Background;
 
   /**
    * Base class for Minimal UI package drawing and managing. Extending this class you may be sure to be successfully
@@ -47,8 +49,6 @@ package com.minimalui.base {
     private var mResized:Boolean = false;
     private var mLayoutManager:LayoutManager;
     private var mIsChanged:Boolean = false;
-    // private var mCoreDecorators:Vector.<Decorator> = new Vector.<Decorator>;
-    // private var mDecoratorNames:Vector.<String> = new Vector.<String>;
 
     private var mResizableAttributes:Array = ["width", "height"];
 
@@ -221,11 +221,12 @@ package com.minimalui.base {
      * @param id id of the element, if passed.
      */
     public function Element(idorcss:String = null, id:String = null) {
-      // mCoreDecorators.push(new Background(this));
-      // mCoreDecorators.push(new Border(this));
       setDirty();
+      invalidateSize();
       setChanged();
       addEventListener(Event.ADDED, onNewParent);
+      addDecorator(new Border(this));
+      addDecorator(new Background(this));
       if(!id && !idorcss) return;
       if(!id && idorcss && idorcss.match(/^[\w]+[\w\d\-]*$/)) {
         mId = idorcss;

@@ -32,7 +32,9 @@ package com.minimalui.controls {
     protected override function coreRedraw():void {
       var color:Number = style.hasValue(BACKGROUND_COLOR) ? style.getNumber(BACKGROUND_COLOR) : 0xaa0000;
       var padding:Number = 0;
-      if(isMouseOver) {
+      if((getStyle("disabled") == "true")) {
+        color = style.hasValue(BACKGROUND_DISABLED_COLOR) ? style.getNumber(BACKGROUND_DISABLED_COLOR) : 0x777777;
+      } else if(isMouseOver) {
           color = style.hasValue(BACKGROUND_COLOR_HOVER) ? style.getNumber(BACKGROUND_COLOR_HOVER) : 0x00aa00;
           if(isMouseDown) padding = 2;
       }
@@ -46,7 +48,7 @@ package com.minimalui.controls {
       graphics.beginGradientFill(GradientType.LINEAR, cc, aa, bb, xx);
       graphics.drawRect(0,0, width, height);
       graphics.endFill();
-      if(!isMouseOver) return;
+      if(!isMouseOver || (getStyle("disabled") == "true")) return;
       aa = [0.5,0];
       var R:Number = style.hasValue("light-radius") ? style.getNumber("light-radius") : 25;
       xx.createGradientBox(2*R, 2*R, 0, mouseX - R, mouseY - R);

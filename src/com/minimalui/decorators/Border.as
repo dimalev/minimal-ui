@@ -7,12 +7,13 @@ package com.minimalui.decorators {
       super(trg);
     }
 
-    public override function onBeforeRedraw():void {
+    public override function onAfterRedraw():void {
       if(!target.style.hasValue("border-width")) return;
       var step:Number = target.style.getNumber("border-delta");
       var color:Number = target.style.hasValue("border-color") ? target.style.getNumber("border-color") : 0xAAAAAA;
       target.graphics.lineStyle(target.style.getNumber("border-width"), color);
       target.graphics.drawRect(step, step, target.width - 2 * step - 1, target.height - 2 * step - 1);
+      target.graphics.lineStyle(-1);
     }
   }
 }

@@ -41,8 +41,8 @@ package com.minimalui.containers {
       var childMarginRight:Number =
         numChildren > 0 ? (getChildAt(numChildren-1) as Element).style.getNumber("margin-right") : 0;
       var contentW:Number = mRealWidth
-        - Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("horizontal-spacing"), childMarginLeft)
-        - Math.max(mStyle.getNumber("padding-right"), mStyle.getNumber("horizontal-spacing"), childMarginRight);
+        - Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("spacing"), childMarginLeft)
+        - Math.max(mStyle.getNumber("padding-right"), mStyle.getNumber("spacing"), childMarginRight);
       var contentH:Number = mViewPort.height;
 
       var lastHorizontalMargin:Number = 4000;
@@ -53,6 +53,9 @@ package com.minimalui.containers {
         break;
       case "right":
         xx = mViewPort.width - contentW;
+        break;
+      case "center":
+        xx = (mViewPort.width - contentW) / 2;
         break;
       }
 
@@ -78,7 +81,7 @@ package com.minimalui.containers {
 
         c.layout(new Rectangle(xx, yy, c.measuredWidth, c.measuredHeight));
 
-        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("horizontal-spacing"));
+        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("spacing"));
         xx += c.measuredWidth + lastHorizontalMargin;
       }
       setChanged();

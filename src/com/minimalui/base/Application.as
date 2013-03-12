@@ -7,6 +7,10 @@ package com.minimalui.base {
     private var mScreens:Object = {};
     private var mCurrentScreen:Element;
 
+    private var mLayoutManager:LayoutManager;
+
+    public function get layoutManager():LayoutManager { return mLayoutManager; }
+
     public function Application() {
       addEventListener(Event.ADDED_TO_STAGE, onCoreAdd);
     }
@@ -32,7 +36,7 @@ package com.minimalui.base {
 
     private function onCoreAdd(e:Event):void {
       removeEventListener(Event.ADDED_TO_STAGE, onAdd);
-      LayoutManager.setDefault(new LayoutManager(stage));
+      LayoutManager.setDefault(mLayoutManager = new LayoutManager(stage));
 
       onAdd();
     }

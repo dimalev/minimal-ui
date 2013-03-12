@@ -42,6 +42,7 @@ package com.minimalui.base {
       if(this.id == id) return this;
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
+        if(!c) continue;
         if(c is BaseContainer) {
           var e:Element = (c as BaseContainer).getById(id);
           if(e) return e;

@@ -31,6 +31,8 @@ package com.minimalui.base {
     private var mStage:Stage;
     private var mReport:LayoutReports = new LayoutReports;
 
+    public function get reports():LayoutReports { return mReport; }
+
     /**
      * Current stage.
      */

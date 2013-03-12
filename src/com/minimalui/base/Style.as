@@ -79,6 +79,7 @@ package com.minimalui.base {
     public function setValue(name:String, value:Object):void {
       if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
       if(!hasOwnValue(name)) addValue(name);
+      else if(mData[name] == value) return;
       mData[name] = value;
       addChanged(name);
     }

@@ -5,6 +5,8 @@ package com.minimalui.controls {
   import flash.text.engine.TextElement;
   import flash.text.engine.FontDescription;
   import flash.text.engine.ElementFormat;
+  import flash.text.engine.TextJustifier;
+  import flash.text.engine.LineJustification;
 
   import com.minimalui.base.Element;
   import com.minimalui.base.Style;
@@ -47,18 +49,18 @@ package com.minimalui.controls {
     }
 
     protected override function coreCommitProperties():void {
-      if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT]))) mIsFormatChanged = true;
+      if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN])))
+        mIsFormatChanged = true;
       if(hasChanged(Vector.<String>([TEXT_CONTENT]))) mIsBlockChanged = true;
+      if(mIsFormatChanged || mIsBlockChanged) {
+        invalidateSize();
+        setChanged();
+      }
     }
 
     protected override function coreMeasure():void {
       changeFormat();
       changeBlock();
-    }
-
-    protected override function coreLayout():void {
-      coreX = mViewPort.x;
-      coreY = mViewPort.y;
     }
 
     protected override function coreRedraw():void {
@@ -126,7 +128,11 @@ package com.minimalui.controls {
     private function changeBlock():void {
       if(!mIsBlockChanged) return;
       var textElement:TextElement = new TextElement(getStyle("content") as String, mFormat);
-      mTextBlock = new TextBlock();
+      if(style.hasValue("width")) {
+        var tj:TextJustifier = TextJustifier.getJustifierForLocale("en");
+        tj.lineJustification = LineJustification.ALL_BUT_LAST;
+        mTextBlock = new TextBlock(null, null, tj);
+      } else mTextBlock = new TextBlock();
       mTextBlock.content = textElement;
 
       var textWidth:Number = 0;

@@ -9,11 +9,26 @@ package com.minimalui.base.debug {
 
     public static var REPORTS_BUFFER:uint = 20;
 
+    public static function SimpleTrace(reporter:LayoutReports):void {
+      var rs:Array = reporter.reports;
+      for each(var r:Object in rs) {
+        trace("-- report");
+        for(var f:String in r)
+          if(r.hasOwnProperty(f)) trace(f, r[f].join(", "));
+      }
+    }
+
     protected var mDoReports:Boolean = false;
     protected var mReports:Array = [];
     protected var mCurrentReport:Object;
 
+    private var mOnNewReport:Function;
+
+    public final function get reports():Array { return mReports.splice(0, mReports.length); }
+
     public final function set doReports(bb:Boolean):void { mDoReports = bb; }
+
+    public final function set onNewReport(f:Function):void { mOnNewReport = f; }
 
     public function LayoutReports() {
     }
@@ -31,7 +46,9 @@ package com.minimalui.base.debug {
 
     public function endReport():void {
       if(!mDoReports) return;
+      mReports.push(mCurrentReport);
       mCurrentReport = null;
+      if(null != mOnNewReport) mOnNewReport(this);
     }
   }
 }

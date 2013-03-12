@@ -24,6 +24,8 @@ package com.minimalui.controls {
     private var mDisabled:Boolean = false;
     private var mIsFocused:Boolean = false;
 
+    public function get text():String { return mInput.text; }
+
     /**
      * Default constructor.
      *
@@ -41,10 +43,16 @@ package com.minimalui.controls {
 
     protected override function coreLayout():void {
       super.coreLayout();
+      mInput.width = mViewPort.width;
       mInput.height = mViewPort.height;
     }
 
     protected override function coreCommitProperties():void {
+      if(hasChanged(Vector.<String>(["width", "height"]))) {
+        if(style.hasValue("width")) mHolder.width = mInput.width = style.getNumber("width");
+        if(style.hasValue("height")) mHolder.height = mInput.height = style.getNumber("height");
+        invalidateSize();
+      }
       if(hasChanged(Vector.<String>([DISABLED]))) {
         mDisabled = useHandCursor = buttonMode = getStyle("disabled") == "true";
         setChanged();
@@ -79,6 +87,8 @@ package com.minimalui.controls {
       mInput = new TextField();
       mInput.type = TextFieldType.INPUT;
       addChild(mInput);
+      mHolder.width = mInput.width = 120;
+      mHolder.height = mInput.width = 30;
     }
   }
 }

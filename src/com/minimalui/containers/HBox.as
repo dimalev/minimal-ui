@@ -7,8 +7,6 @@ package com.minimalui.containers {
   import com.minimalui.base.Element;
 
   public class HBox extends BaseContainer {
-    protected var mRealWidth:Number = 0;
-    protected var mRealHeight:Number = 0;
 
     public function HBox(items:Vector.<Element> = null, idorcss:String = null, id:String = null) {
       super(idorcss, id);
@@ -22,6 +20,7 @@ package com.minimalui.containers {
       var h:Number= mStyle.getNumber("padding-top") + mStyle.getNumber("padding-bottom");
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
+        if(!c) continue;
         var ch:Number = c.measuredHeight;
         h = Math.max(h, ch + Math.max(mStyle.getNumber("padding-top"),    c.style.getNumber("margin-top")   )
                            + Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"))
@@ -31,8 +30,8 @@ package com.minimalui.containers {
       }
       f.push(mStyle.getNumber("padding-right"));
       mRealWidth = pack(f, mStyle.getNumber("spacing"));
-      mMeasuredWidth = Math.max(mRealWidth, mStyle.getNumber("width"));
-      mMeasuredHeight = Math.max(mRealHeight = h, mStyle.getNumber("height"));
+      mMeasuredWidth = mRealWidth;
+      mMeasuredHeight = mRealHeight = h;
     }
 
     protected override function coreLayout():void {
@@ -61,6 +60,7 @@ package com.minimalui.containers {
 
       for(var i:uint = 0; i < numChildren; ++i) {
         c = getChildAt(i) as Element;
+        if(!c) continue;
         if(c.style.getNumber("margin-left") > lastHorizontalMargin)
           xx += (c.style.getNumber("margin-left") - lastHorizontalMargin);
 

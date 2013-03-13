@@ -33,7 +33,7 @@ hbox {\
   align: center;\
 }\
 ");
-      var xml:XML = <hbox id="main-hbox">
+      var xml:XML = <hbox id="main-hbox" valign="middle">
         <vbox margin-right="20" id="vbox-left">
           <label content="Game" id="label-Game" />
           <button text="Play" id="button-play" />
@@ -41,7 +41,7 @@ hbox {\
           <button text="Exit" disabled="true" id="button-exit" />
         <input holder="Enter something" />
         </vbox>
-        <vbox id="vbox-right">
+        <vbox id="vbox-right" height="50" overflow="clip">
           <label content="Settings" id="label-settings" />
           <button text="Video" id="button-video" />
           <button text="Audio" id="button-audio" />

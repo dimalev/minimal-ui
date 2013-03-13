@@ -79,6 +79,8 @@ package com.minimalui.factories {
           if(name == "margin") el.margins = Number(attribute.toString());
           else if(name == "padding") el.paddings = Number(attribute.toString());
           else if(name == "id") el.id = attribute.toString();
+          else if(name == "content") el.setStyle("content", attribute.toString());
+          else if(name == "text") el.setStyle("text", attribute.toString());
           else {
             styles += name + ": " + attribute.toString() + ";";
             for each(d in mDecorators) {

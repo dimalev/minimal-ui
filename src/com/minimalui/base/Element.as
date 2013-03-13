@@ -35,6 +35,14 @@ package com.minimalui.base {
      */
     protected var mMeasuredHeight:int;
     /**
+     * Element preferred width.
+     */
+    protected var mRealWidth:int;
+    /**nn
+     * Element preferred height.
+     */
+    protected var mRealHeight:int;
+    /**
      * Parent area dedicated to this object. This is what layout wants this object to look like.
      */
     protected var mViewPort:Rectangle;
@@ -123,6 +131,15 @@ package com.minimalui.base {
     public final function get measuredHeight():int { return mMeasuredHeight; }
 
     /**
+     * Width preferred by this element.
+     */
+    public final function get realWidth():int { return mRealWidth; }
+    /**
+     * Height preferred by this element.
+     */
+    public final function get realHeight():int { return mRealHeight; }
+
+    /**
      * If element needs to be validated.
      */
     public final function get isDirty():Boolean { return mDirty; }
@@ -175,19 +192,21 @@ package com.minimalui.base {
     protected final function set coreY(yy:Number):void { super.y = yy; }
 
     /**
-     * Real element width. To get preferred size check styles.
+     * Real element height. To get preferred size check styles.
      */
     public final override function get height():Number {
       layoutManager.forceUpdate();
       if(!mViewPort) return Math.max(super.height, measuredHeight);
+      if(style.hasValue("overflow") && getStyle("overflow") == "clip") return scrollRect.height;
       return Math.max(mViewPort.height, super.height);
     }
     /**
-     * Real element height. To get preferred size check styles.
+     * Real element width. To get preferred size check styles.
      */
     public final override function get width():Number {
       layoutManager.forceUpdate();
       if(!mViewPort) return Math.max(super.width, measuredWidth);
+      if(style.hasValue("overflow") && getStyle("overflow") == "clip") return scrollRect.width;
       return Math.max(mViewPort.width, super.width);
     }
 
@@ -310,6 +329,8 @@ package com.minimalui.base {
     public final function measure():void {
       coreMeasure();
       mResized = false;
+      if(mStyle.hasValue("width")) mMeasuredWidth = mStyle.getNumber("width") || measuredWidth;
+      if(mStyle.hasValue("height")) mMeasuredHeight = mStyle.getNumber("height") || measuredHeight;
     }
 
     public final function layout(viewPort:Rectangle = null):void {
@@ -317,13 +338,20 @@ package com.minimalui.base {
       if(!mViewPort) mViewPort = new Rectangle(super.x, super.y, measuredWidth, measuredHeight);
       if(mStyle.hasValue("x")) mViewPort.x = mStyle.getNumber("x");
       if(mStyle.hasValue("y")) mViewPort.y = mStyle.getNumber("y");
-      if(mStyle.hasValue("width")) mViewPort.width = mStyle.getNumber("width") || measuredWidth;
-      if(mStyle.hasValue("height")) mViewPort.height = mStyle.getNumber("height") || measuredHeight;
       mViewPort.width = Math.ceil(mViewPort.width);
       mViewPort.height = Math.ceil(mViewPort.height);
       coreX = Math.round(mViewPort.x);
       coreY = Math.round(mViewPort.y);
       coreLayout();
+      if(!style.hasValue("overflow") && getStyle("overflow") == "clip") return;
+      if(!(realWidth > mViewPort.width || realHeight > mViewPort.height)) {
+        if(scrollRect) scrollRect = null;
+        return;
+      }
+      if(!scrollRect) {
+        // create scroll rect, init scroll bars;
+        scrollRect = new Rectangle(0, 0, mViewPort.width, mViewPort.height);
+      }
     }
 
     public final function redraw():void {

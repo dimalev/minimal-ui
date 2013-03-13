@@ -7,8 +7,6 @@ package com.minimalui.containers {
   import com.minimalui.base.Element;
 
   public class VBox extends BaseContainer {
-    protected var mRealWidth:Number = 0;
-    protected var mRealHeight:Number = 0;
 
     public function VBox(items:Vector.<Element> = null, idorcss:String = null, id:String = null) {
       super(idorcss, id);
@@ -22,6 +20,7 @@ package com.minimalui.containers {
       var f:Vector.<Number> = Vector.<Number>([mStyle.getNumber("padding-top")]);
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
+        if(!c) continue;
         var cw:Number = c.measuredWidth;
         w = Math.max(w, cw + Math.max(mStyle.getNumber("padding-left"),  c.style.getNumber("margin-left") )
                            + Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"))
@@ -30,9 +29,9 @@ package com.minimalui.containers {
         f.push(c.style.getNumber("margin-top"), c.measuredHeight, c.style.getNumber("margin-bottom"));
       }
       f.push(mStyle.getNumber("padding-bottom"));
-      mMeasuredWidth = Math.max(mRealWidth = w, mStyle.getNumber("width"));
+      mMeasuredWidth = mRealWidth = w;
       mRealHeight = pack(f, style.getNumber("spacing"));
-      mMeasuredHeight = Math.max(mRealHeight, mStyle.getNumber("height"));
+      mMeasuredHeight = mRealHeight;
     }
 
     protected override function coreLayout():void {
@@ -61,6 +60,7 @@ package com.minimalui.containers {
 
       for(var i:uint = 0; i < numChildren; ++i) {
         c = getChildAt(i) as Element;
+        if(!c) continue;
         if(c.style.getNumber("margin-top") > lastVerticalMargin)
           yy += (c.style.getNumber("margin-top") - lastVerticalMargin);
 

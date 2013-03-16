@@ -6,6 +6,7 @@ package com.minimalui.factories {
   import com.minimalui.base.DecoratorDescriptor;
   import com.minimalui.containers.VBox;
   import com.minimalui.containers.HBox;
+  import com.minimalui.containers.ScrollControlBase;
   import com.minimalui.controls.Label;
   import com.minimalui.controls.Button;
   import com.minimalui.controls.Input;
@@ -109,6 +110,7 @@ package com.minimalui.factories {
       case "label": return Label;
       case "button": return Button;
       case "input": return Input;
+      case "scrollControlBase": return ScrollControlBase;
       }
       return null;
     }

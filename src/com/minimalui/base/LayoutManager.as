@@ -31,6 +31,9 @@ package com.minimalui.base {
     private var mStage:Stage;
     private var mReport:LayoutReports = new LayoutReports;
 
+    /**
+     * Get reports about each layout cycle.
+     */
     public function get reports():LayoutReports { return mReport; }
 
     /**

@@ -88,7 +88,7 @@ package com.minimalui.controls {
       mInput.type = TextFieldType.INPUT;
       addChild(mInput);
       mHolder.width = mInput.width = 120;
-      mHolder.height = mInput.width = 20;
+      mHolder.height = mInput.height = 20;
     }
   }
 }

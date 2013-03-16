@@ -52,20 +52,29 @@ package com.minimalui.base {
     }
 
     protected override function coreMeasure():void {
-      mMeasuredWidth = mStyle.getNumber("width");
-      mMeasuredHeight = mStyle.getNumber("height");
+      mMeasuredWidth = style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
+      mMeasuredHeight = style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
       for(var i:uint = 0; i < numChildren; ++i) {
-        var c:Element = getChildAt(i) as Element;
-        if(null == c) continue;
-        var innerw:Number = c.measuredWidth
-          + Math.max(mStyle.getNumber("padding-left"), c.style.getNumber("margin-left"))
-          + Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"));
-        var innerh:Number = c.measuredHeight
-          + Math.max(mStyle.getNumber("padding-top"), c.style.getNumber("margin-top"))
-          + Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"));
-        mMeasuredWidth = Math.max(mMeasuredWidth, innerw);
-        mMeasuredHeight = Math.max(mMeasuredHeight, innerh);
+        var o:DisplayObject = getChildAt(i);
+        var innerW:Number;
+        var innerH:Number;
+        if(!(o is Element)) {
+          innerW = o.width + style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
+          innerH = o.height + style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
+        } else {
+          var c:Element = o as Element;
+          innerW = c.measuredWidth
+            + Math.max(style.getNumber(Element.PADDING_LEFT), c.style.getNumber(Element.MARGIN_LEFT))
+            + Math.max(style.getNumber(Element.PADDING_RIGHT), c.style.getNumber(Element.MARGIN_RIGHT));
+          innerH = c.measuredHeight
+            + Math.max(style.getNumber(Element.PADDING_TOP), c.style.getNumber(Element.MARGIN_TOP))
+            + Math.max(style.getNumber(Element.PADDING_BOTTOM), c.style.getNumber(Element.MARGIN_BOTTOM));
+        }
+        mMeasuredWidth = Math.max(mMeasuredWidth, innerW);
+        mMeasuredHeight = Math.max(mMeasuredHeight, innerH);
       }
+      mRealWidth = mMeasuredWidth;
+      mRealHeight = mMeasuredHeight;
     }
 
     protected override function coreLayout():void {
@@ -73,9 +82,33 @@ package com.minimalui.base {
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
         if(null == c) continue;
-        c.layout(new Rectangle(Math.max(mStyle.getNumber("padding-left"), c.style.getNumber("margin-left")),
-                               Math.max(mStyle.getNumber("padding-top"), c.style.getNumber("margin-top")),
-                               c.measuredWidth, c.measuredHeight));
+        var w:Number = c.measuredWidth;
+        var h:Number = c.measuredHeight;
+        var l:Number = Math.max(mStyle.getNumber("padding-left"), c.style.getNumber("margin-left"));
+        var r:Number = Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"));
+        var t:Number = Math.max(mStyle.getNumber("padding-top"), c.style.getNumber("margin-top"));
+        var b:Number = Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"));
+        if(c.style.hasValue("percent-width"))
+          w = c.style.getNumber("percent-width") * (mViewPort.width - l - r) / 100;
+        if(c.style.hasValue("percent-height"))
+          w = c.style.getNumber("percent-height") * (mViewPort.height - t - b) / 100;
+        switch(getStyle("align") || "left") {
+        case "center":
+          l = (mViewPort.width - w) / 2;
+          break;
+        case "right":
+          l = mViewPort.width - w - r;
+          break;
+        }
+        switch(getStyle("valign") || "top") {
+        case "middle":
+          t = (mViewPort.height - h) / 2;
+          break;
+        case "bottom":
+          t = mViewPort.height - h - b;
+          break;
+        }
+        c.layout(new Rectangle(l, t, w, h));
       }
       setChanged();
     }

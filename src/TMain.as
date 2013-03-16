@@ -36,18 +36,20 @@ hbox {\
       var xml:XML = <hbox id="main-hbox" valign="middle">
         <vbox margin-right="20" id="vbox-left">
           <label content="Game" id="label-Game" />
-          <button text="Play" id="button-play" />
+          <button text="Play" id="button-play" width="120" height="80" align="right" />
           <button text="Load" disabled="true" id="button-load" />
           <button text="Exit" disabled="true" id="button-exit" />
         <input holder="Enter something" />
         </vbox>
-        <vbox id="vbox-right" height="50" overflow="clip">
-          <label content="Settings" id="label-settings" />
-          <button text="Video" id="button-video" />
-          <button text="Audio" id="button-audio" />
-          <button text="Network" id="button-network" />
-          <button text="Controls" id="button-controls" />
-        </vbox>
+        <scrollControlBase width="100" height="100">
+          <vbox id="vbox-right" overflow="clip">
+            <label content="Settings" id="label-settings" />
+            <button text="Video" id="button-video" />
+            <button text="Audio" id="button-audio" />
+            <button text="Network" id="button-network" />
+            <button text="Controls" id="button-controls" />
+          </vbox>
+        </scrollControlBase>
       </hbox>;
       var e:HBox = f.decode(xml) as HBox;
       addChild(e);

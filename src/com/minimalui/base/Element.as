@@ -17,11 +17,25 @@ package com.minimalui.base {
    * Element can be set as Dirty, Invalidated Size, and Changed. On dirty objects commitProperties() is called on
    * update process. On Elements with invalidated size, measure() and layout() is called on update process. When redraw
    * is called, Element checks if it was changed. Dirty object can set itself with invalidated size on
-   * commitProperties() call. Both dirty element and element with invalidated size is subject to be redrawn if Changed
-   * is set when commitProperties(), measure() or layout() is called.
+   * commitProperties() call. Both dirty element and element with invalidated size are subject to be redrawn if Changed
+   * is set when commitProperties(), measure() or layout() is called. Layout Manager resolves commitProperties and
+   * redraw in random order, layout has to be called by each parent for his children, and measure is called recursively
+   * from children to parents.
    */
   public class Element extends Sprite {
-    public static const SIZES_PROPERTIES:Vector.<String> = Vector.<String>(["width", "height"]);
+    public static const WIDTH:String = "width";
+    public static const HEIGHT:String = "height";
+    public static const SIZES_PROPERTIES:Vector.<String> = Vector.<String>([WIDTH, HEIGHT]);
+
+    public static const PADDING_LEFT:String = "padding-left";
+    public static const PADDING_RIGHT:String = "padding-right";
+    public static const PADDING_TOP:String = "padding-top";
+    public static const PADDING_BOTTOM:String = "padding-bottom";
+    public static const MARGIN_LEFT:String = "margin-left";
+    public static const MARGIN_RIGHT:String = "margin-right";
+    public static const MARGIN_TOP:String = "margin-top";
+    public static const MARGIN_BOTTOM:String = "margin-bottom";
+
     /**
      * Current element style set.
      */
@@ -29,19 +43,19 @@ package com.minimalui.base {
     /**
      * Element preferred width.
      */
-    protected var mMeasuredWidth:int;
-    /**nn
-     * Element preferred height.
-     */
-    protected var mMeasuredHeight:int;
+    protected var mMeasuredWidth:Number;
     /**
-     * Element preferred width.
-     */
-    protected var mRealWidth:int;
-    /**nn
      * Element preferred height.
      */
-    protected var mRealHeight:int;
+    protected var mMeasuredHeight:Number;
+    /**
+     * Element real width.
+     */
+    protected var mRealWidth:Number;
+    /**
+     * Element real height.
+     */
+    protected var mRealHeight:Number;
     /**
      * Parent area dedicated to this object. This is what layout wants this object to look like.
      */
@@ -58,7 +72,7 @@ package com.minimalui.base {
     private var mLayoutManager:LayoutManager;
     private var mIsChanged:Boolean = false;
 
-    private var mResizableAttributes:Array = ["width", "height"];
+    private var mResizableAttributes:Array = [WIDTH, HEIGHT];
 
     /**
      * If this element should be redrawn.
@@ -133,11 +147,11 @@ package com.minimalui.base {
     /**
      * Width preferred by this element.
      */
-    public final function get realWidth():int { return mRealWidth; }
+    public final function get realWidth():Number { return mRealWidth; }
     /**
      * Height preferred by this element.
      */
-    public final function get realHeight():int { return mRealHeight; }
+    public final function get realHeight():Number { return mRealHeight; }
 
     /**
      * If element needs to be validated.
@@ -195,19 +209,17 @@ package com.minimalui.base {
      * Real element height. To get preferred size check styles.
      */
     public final override function get height():Number {
-      layoutManager.forceUpdate();
+      if(isSizeInvalid) layoutManager.forceUpdate();
       if(!mViewPort) return Math.max(super.height, measuredHeight);
-      if(style.hasValue("overflow") && getStyle("overflow") == "clip") return scrollRect.height;
-      return Math.max(mViewPort.height, super.height);
+      return Math.max(super.height, mViewPort.height);
     }
     /**
      * Real element width. To get preferred size check styles.
      */
     public final override function get width():Number {
-      layoutManager.forceUpdate();
+      if(isSizeInvalid) layoutManager.forceUpdate();
       if(!mViewPort) return Math.max(super.width, measuredWidth);
-      if(style.hasValue("overflow") && getStyle("overflow") == "clip") return scrollRect.width;
-      return Math.max(mViewPort.width, super.width);
+      return Math.max(super.width, mViewPort.width);
     }
 
     /**
@@ -327,10 +339,17 @@ package com.minimalui.base {
     }
 
     public final function measure():void {
+      mMeasuredWidth = mMeasuredHeight = mRealWidth = mRealHeight = NaN;
       coreMeasure();
+      if(isNaN(mRealWidth)) mRealWidth = mMeasuredWidth;
+      if(isNaN(mRealHeight)) mRealHeight = mMeasuredHeight;
+      if(mStyle.hasValue("width")) mMeasuredWidth = mStyle.getNumber("width");
+      if(mStyle.hasValue("height")) mMeasuredHeight = mStyle.getNumber("height");
+      if(isNaN(mMeasuredWidth)) mMeasuredWidth = 100;
+      if(isNaN(mMeasuredHeight)) mMeasuredHeight = 100;
+      if(isNaN(mRealWidth)) mRealWidth = mMeasuredWidth;
+      if(isNaN(mRealHeight)) mRealHeight = mMeasuredHeight;
       mResized = false;
-      if(mStyle.hasValue("width")) mMeasuredWidth = mStyle.getNumber("width") || measuredWidth;
-      if(mStyle.hasValue("height")) mMeasuredHeight = mStyle.getNumber("height") || measuredHeight;
     }
 
     public final function layout(viewPort:Rectangle = null):void {
@@ -343,15 +362,6 @@ package com.minimalui.base {
       coreX = Math.round(mViewPort.x);
       coreY = Math.round(mViewPort.y);
       coreLayout();
-      if(!style.hasValue("overflow") && getStyle("overflow") == "clip") return;
-      if(!(realWidth > mViewPort.width || realHeight > mViewPort.height)) {
-        if(scrollRect) scrollRect = null;
-        return;
-      }
-      if(!scrollRect) {
-        // create scroll rect, init scroll bars;
-        scrollRect = new Rectangle(0, 0, mViewPort.width, mViewPort.height);
-      }
     }
 
     public final function redraw():void {
@@ -376,8 +386,6 @@ package com.minimalui.base {
 
     protected function coreMeasure():void {
       "Implement ME!";
-      mMeasuredWidth = Math.max(super.width, mStyle.getNumber("width"));
-      mMeasuredHeight = Math.max(super.height, mStyle.getNumber("height"));
     }
 
     protected function coreLayout():void {

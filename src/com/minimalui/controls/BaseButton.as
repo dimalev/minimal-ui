@@ -27,6 +27,12 @@ package com.minimalui.controls {
     private var mIsMouseDown:Boolean = false;
     private var mIsMouseOver:Boolean = false;
 
+    public function set disabled(bb:Boolean):void { setStyle("disabled", bb ? "true" : "false") }
+
+    public function get disabled():Boolean {
+      return style.hasValue("disabled") ? getStyle("disabled") == "true" : false;
+    }
+
     /**
      * Easy shortcut to click event. Dispatched before calling firing click event.
      *
@@ -54,6 +60,8 @@ package com.minimalui.controls {
      */
    public function BaseButton(idorcss:String = null, id:String = null) {
       super(idorcss, id);
+      if(!style.hasValue("align")) setStyle("align", "center");
+      if(!style.hasValue("valign")) setStyle("valign", "middle");
       useHandCursor = buttonMode = true;
       construct();
       addMouseListeners();

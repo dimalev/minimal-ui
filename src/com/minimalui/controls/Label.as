@@ -115,7 +115,7 @@ package com.minimalui.controls {
     }
 
     private function changeFormat():void {
-      if(!mIsFormatChanged) return;
+      // if(!mIsFormatChanged) return;
       mFormat = new ElementFormat(new FontDescription(style.getString(FONT_FAMILY) || "sans",
                                                       style.getString(FONT_WEIGHT) || "bold"),
                                   style.getNumber(FONT_SIZE) || 14,
@@ -126,7 +126,7 @@ package com.minimalui.controls {
     }
 
     private function changeBlock():void {
-      if(!mIsBlockChanged) return;
+      // if(!mIsBlockChanged) return;
       var textElement:TextElement = new TextElement(getStyle("content") as String, mFormat);
       if(style.hasValue("width")) {
         var tj:TextJustifier = TextJustifier.getJustifierForLocale("en");

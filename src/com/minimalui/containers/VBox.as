@@ -36,9 +36,10 @@ package com.minimalui.containers {
 
     protected override function coreLayout():void {
       var c:Element;
-      var childMarginTop:Number = numChildren > 0 ? (getChildAt(0) as Element).style.getNumber("margin-top") : 0;
-      var childMarginBottom:Number =
-        numChildren > 0 ? (getChildAt(numChildren-1) as Element).style.getNumber("margin-bottom") : 0;
+      var e1:Element = numChildren > 0 ? (getChildAt(0) as Element) : null;
+      var childMarginTop:Number = e1 ? e1.style.getNumber("margin-top") : 0;
+      var e2:Element = numChildren > 0 ? (getChildAt(numChildren - 1) as Element) : null;
+      var childMarginBottom:Number = e2 ? e2.style.getNumber("margin-bottom") : 0;
       var contentH:Number = mRealHeight
         - Math.max(mStyle.getNumber("padding-top"), mStyle.getNumber("spacing"), childMarginTop)
         - Math.max(mStyle.getNumber("padding-bottom"), mStyle.getNumber("spacing"), childMarginBottom)

@@ -6,10 +6,13 @@ package com.minimalui.base {
 
     private var mScreens:Object = {};
     private var mCurrentScreen:Element;
+    private var mInternalContainer:BaseContainer;
 
     private var mLayoutManager:LayoutManager;
 
     public function get layoutManager():LayoutManager { return mLayoutManager; }
+
+    public function get currentScreen():Element { return mCurrentScreen; }
 
     public function Application() {
       addEventListener(Event.ADDED_TO_STAGE, onCoreAdd);
@@ -20,15 +23,13 @@ package com.minimalui.base {
     }
 
     public final function showScreen(name:String):void {
-      if(mCurrentScreen) removeChild(mCurrentScreen);
-      addChild(mCurrentScreen = mScreens[name]);
-      mCurrentScreen.x = (stage.stageWidth - mCurrentScreen.width) / 2;
-      mCurrentScreen.y = (stage.stageHeight - mCurrentScreen.height) / 2;
+      if(mCurrentScreen) mInternalContainer.removeChild(mCurrentScreen);
+      mInternalContainer.addChild(mCurrentScreen = mScreens[name]);
     }
 
     public final function clearScreen():void {
       if(!mCurrentScreen) return;
-      removeChild(mCurrentScreen);
+      mInternalContainer.removeChild(mCurrentScreen);
       mCurrentScreen = null;
     }
 
@@ -37,6 +38,9 @@ package com.minimalui.base {
     private function onCoreAdd(e:Event):void {
       removeEventListener(Event.ADDED_TO_STAGE, onAdd);
       LayoutManager.setDefault(mLayoutManager = new LayoutManager(stage));
+      addChild(mInternalContainer = new BaseContainer("align: center; valign:middle"));
+      mInternalContainer.width = stage.stageWidth;
+      mInternalContainer.height = stage.stageHeight;
 
       onAdd();
     }

@@ -44,8 +44,8 @@ hbox {\
         <scrollControlBase width="100" height="100">
           <vbox id="vbox-right" overflow="clip">
             <label content="Settings" id="label-settings" />
-            <button text="Video" id="button-video" />
-            <button text="Audio" id="button-audio" />
+            <button text="Vi:deo:" id="button-video" />
+            <button text="Au;dio\\" id="button-audio" />
             <button text="Network" id="button-network" />
             <button text="Controls" id="button-controls" />
           </vbox>

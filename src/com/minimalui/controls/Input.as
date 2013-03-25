@@ -25,6 +25,7 @@ package com.minimalui.controls {
     private var mIsFocused:Boolean = false;
 
     public function get text():String { return mInput.text; }
+    public function set text(txt:String):void { mInput.text = txt; }
 
     /**
      * Default constructor.

@@ -53,12 +53,27 @@ package com.minimalui.base {
     }
 
     public function setCSS(css:String):void {
-      var pairs:Array = css.split(";");
-      for each(var p:String in pairs) {
-        var spl:Array = p.split(":");
-        if(spl.length != 2) continue;
-        var name:String = spl[0].replace(/(^\s+|\s+$)/g, "");
-        var value:String = spl[1].replace(/(^\s+|\s+$)/g, "");
+      // var pairs:Array = css.split(/(?:[^\\]);/);
+      var i:int = 0;
+      var j:int = 0;
+      var x:int;
+      trace(css);
+      while(i < css.length) {
+        while(true) {
+          x = css.indexOf(";", j);
+          trace(j + " " + x);
+          if(x < 0) break;
+          if(css.charAt(x - 1) == "\\") j = x + 1;
+          else break;
+        }
+        if(x < 0) x = css.length - 1;
+        trace(x);
+        var p:String = css.substr(i, x - i);
+        i = j = x + 1;
+        var d:int = p.indexOf(":");
+        if(d < 0) continue;
+        var name:String = p.substr(0, d).replace(/(^\s+|\s+$)/g, "");
+        var value:String = p.substr(d+1).replace(/(^\s+|\s+$)/g, "").replace(/\\:/, ":").replace(/\\;/, ";");
         if(value.match(/^\s*(0x[0-9a-fA-F]+?|\d+)\s*$/)) setValue(name, Number(value));
         else setValue(name, value);
       }

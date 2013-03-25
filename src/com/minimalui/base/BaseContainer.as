@@ -78,7 +78,6 @@ package com.minimalui.base {
     }
 
     protected override function coreLayout():void {
-      super.coreLayout();
       for(var i:uint = 0; i < numChildren; ++i) {
         var c:Element = getChildAt(i) as Element;
         if(null == c) continue;

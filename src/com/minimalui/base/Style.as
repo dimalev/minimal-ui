@@ -57,17 +57,14 @@ package com.minimalui.base {
       var i:int = 0;
       var j:int = 0;
       var x:int;
-      trace(css);
       while(i < css.length) {
         while(true) {
           x = css.indexOf(";", j);
-          trace(j + " " + x);
           if(x < 0) break;
           if(css.charAt(x - 1) == "\\") j = x + 1;
           else break;
         }
-        if(x < 0) x = css.length - 1;
-        trace(x);
+        if(x < 0) x = css.length;
         var p:String = css.substr(i, x - i);
         i = j = x + 1;
         var d:int = p.indexOf(":");

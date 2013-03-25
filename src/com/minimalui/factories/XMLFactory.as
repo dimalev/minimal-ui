@@ -81,7 +81,7 @@ package com.minimalui.factories {
           else if(name == "padding") el.paddings = Number(attribute.toString());
           else if(name == "id") el.id = attribute.toString();
           else {
-            styles += name + ": " + attribute.toString().replace(":", "\\:").replace(";", "\\;") + ";";
+            styles += name + ": " + attribute.toString().replace(/:/g, "\\:").replace(/;/g , "\\;") + ";";
             for each(d in mDecorators) {
               if(d.styles.indexOf(name) < 0) continue;
               if(dd.indexOf(d) < 0) dd.push(d);

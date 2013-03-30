@@ -51,8 +51,7 @@ package com.minimalui.controls {
     protected override function coreCommitProperties():void {
       if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN])))
         mIsFormatChanged = true;
-      if(hasChanged(Vector.<String>([TEXT_CONTENT]))) mIsBlockChanged = true;
-      if(mIsFormatChanged || mIsBlockChanged) {
+      if(mIsFormatChanged || hasChanged(Vector.<String>([TEXT_CONTENT]))) {
         invalidateSize();
         setChanged();
       }
@@ -60,20 +59,20 @@ package com.minimalui.controls {
 
     protected override function coreMeasure():void {
       changeFormat();
-      changeBlock();
+      if(!isNaN(mMeasuredWidth)) changeBlock(mMeasuredWidth);
+      else {
+        changeBlock(4000);
+        mMeasuredWidth = mRealWidth;
+      }
+      if(isNaN(mMeasuredHeight)) mMeasuredHeight = mRealHeight;
     }
 
     protected override function coreRedraw():void {
       clean();
 
-      var tl:TextLine = null;
-      mRealTextHeight = 0;
-      mRealTextWidth = 0;
-      while(tl = mTextBlock.createTextLine(tl, mViewPort.width)) {
-        addChild(tl);
-        mRealTextWidth = Math.max(mRealTextHeight, tl.width);
-        mRealTextHeight += tl.height + tl.descent;
-      }
+      if(mViewPort.width < mRealWidth) changeBlock(mViewPort.width);
+
+      for each(var tl:TextLine in mText) addChild(tl);
 
       coreAlign();
     }
@@ -115,40 +114,37 @@ package com.minimalui.controls {
     }
 
     private function changeFormat():void {
-      // if(!mIsFormatChanged) return;
+      if(!mIsFormatChanged) return;
       mFormat = new ElementFormat(new FontDescription(style.getString(FONT_FAMILY) || "sans",
                                                       style.getString(FONT_WEIGHT) || "bold"),
                                   style.getNumber(FONT_SIZE) || 14,
                                   style.getNumber(FONT_COLOR) || 0x00);
       mIsFormatChanged = false;
-      mIsBlockChanged = true;
       setChanged();
     }
 
-    private function changeBlock():void {
-      // if(!mIsBlockChanged) return;
+    private function changeBlock(w:Number):void {
       var textElement:TextElement = new TextElement(getStyle("content") as String, mFormat);
-      if(style.hasValue("width")) {
+      // if(style.hasValue("width")) {
         var tj:TextJustifier = TextJustifier.getJustifierForLocale("en");
         tj.lineJustification = LineJustification.ALL_BUT_LAST;
         mTextBlock = new TextBlock(null, null, tj);
-      } else mTextBlock = new TextBlock();
+      // } else mTextBlock = new TextBlock();
       mTextBlock.content = textElement;
 
-      var textWidth:Number = 0;
-      var textHeight:Number = 0;
+      mRealTextWidth = 0;
+      mRealTextHeight = 0;
 
       mText.splice(0, mText.length);
       var tl:TextLine = null;
-      var w:Number = mStyle.hasValue("width") ? mStyle.getNumber("width") : 4000;
       while(tl = mTextBlock.createTextLine(tl, w)) {
         mText.push(tl);
-        textWidth = Math.max(textWidth, tl.width);
-        textHeight += tl.height+tl.descent;
+        mRealTextWidth = Math.max(mRealTextWidth, tl.textWidth);
+        mRealTextHeight += tl.height+tl.descent;
       }
 
-      mMeasuredWidth = Math.ceil(Math.max(mStyle.getNumber("width"), textWidth));
-      mMeasuredHeight = Math.ceil(Math.max(mStyle.getNumber("height"), textHeight));
+      mRealWidth = mRealTextWidth + style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
+      mRealHeight = mRealTextHeight + style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
 
       mIsBlockChanged = false;
       setChanged();

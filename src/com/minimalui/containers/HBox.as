@@ -30,8 +30,7 @@ package com.minimalui.containers {
       }
       f.push(mStyle.getNumber("padding-right"));
       mRealWidth = pack(f, mStyle.getNumber("spacing"));
-      mMeasuredWidth = mRealWidth;
-      mMeasuredHeight = mRealHeight = h;
+      mRealHeight = h;
     }
 
     protected override function coreLayout():void {
@@ -39,10 +38,12 @@ package com.minimalui.containers {
       var childMarginLeft:Number = numChildren > 0 ? (getChildAt(0) as Element).style.getNumber("margin-left") : 0;
       var childMarginRight:Number =
         numChildren > 0 ? (getChildAt(numChildren-1) as Element).style.getNumber("margin-right") : 0;
-      var contentW:Number = mRealWidth
+      var contentW:Number = Math.min(mRealWidth, mViewPort.width)
         - Math.max(mStyle.getNumber("padding-left"), mStyle.getNumber("spacing"), childMarginLeft)
         - Math.max(mStyle.getNumber("padding-right"), mStyle.getNumber("spacing"), childMarginRight);
       var contentH:Number = mViewPort.height;
+
+      var hspace:Number = contentW;
 
       var lastHorizontalMargin:Number = 4000;
       var xx:Number = (mViewPort.width - contentW) / 2;
@@ -57,7 +58,9 @@ package com.minimalui.containers {
         xx = (mViewPort.width - contentW) / 2;
         break;
       }
+      var baseXX:Number = xx;
 
+      var newLine:Boolean = false;
       for(var i:uint = 0; i < numChildren; ++i) {
         c = getChildAt(i) as Element;
         if(!c) continue;
@@ -79,10 +82,23 @@ package com.minimalui.containers {
           break;
         }
 
-        c.layout(new Rectangle(xx, yy, c.measuredWidth, c.measuredHeight));
+        var cw:Number = c.measuredWidth;
+        if(cw > hspace) {
+          cw = hspace;
+          newLine = true;
+        }
+        c.layout(new Rectangle(xx, yy, cw, c.measuredHeight));
+        hspace -= cw;
 
-        lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("spacing"));
-        xx += c.measuredWidth + lastHorizontalMargin;
+        if(!newLine) {
+          lastHorizontalMargin = Math.max(c.style.getNumber("margin-right"), mStyle.getNumber("spacing"));
+          hspace -= lastHorizontalMargin;
+          xx += cw + lastHorizontalMargin;
+        } else {
+          xx = baseXX;
+          hspace = contentW;
+          lastHorizontalMargin = 4000;
+        }
       }
       setChanged();
     }

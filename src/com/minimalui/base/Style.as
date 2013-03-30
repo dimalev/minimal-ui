@@ -14,6 +14,10 @@ package com.minimalui.base {
     private var mMutable:Boolean = true;
     private var mHasNewParent:Boolean = false;
 
+    private var mTarget:Element;
+    private var mInvalidateSizeList:Vector.<String> = new Vector.<String>();
+    private var mChangeList:Vector.<String> = new Vector.<String>();
+
     public function get mutable():Boolean { return mMutable; }
     public function freeze():Style {
       if(mParent && mParent.mutable) throw new Error("Parent has to be frozen!");
@@ -30,8 +34,17 @@ package com.minimalui.base {
       mHasNewParent = true;
     }
 
-    public function Style(fields:Object = null) {
+    public function Style(target:Element, fields:Object = null) {
+      mTarget = target;
       if(fields is String) setCSS(fields as String);
+    }
+
+    public function addInvalidateSize(...names):void {
+      mInvalidateSizeList = mInvalidateSizeList.concat(Vector.<String>(names));
+    }
+
+    public function addChange(...names):void {
+      mChangeList = mChangeList.concat(Vector.<String>(names));
     }
 
     public function addInheritable(...names):void {
@@ -94,6 +107,9 @@ package com.minimalui.base {
       else if(mData[name] == value) return;
       mData[name] = value;
       addChanged(name);
+      mTarget.setDirty();
+      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
+      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
     }
 
     public function hasValue(name:String):Boolean {

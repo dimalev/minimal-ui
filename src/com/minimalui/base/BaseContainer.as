@@ -7,6 +7,9 @@ package com.minimalui.base {
    * Brings valuable tool functions for such derives as Horizontal and Vertical box.
    */
   public class BaseContainer extends Element {
+    public static const ALIGN:String = "align";
+    public static const VALIGN:String = "valign";
+
     /**
      * Constructs container with given CSS properties and/or id.
      *
@@ -52,8 +55,8 @@ package com.minimalui.base {
     }
 
     protected override function coreMeasure():void {
-      mMeasuredWidth = style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
-      mMeasuredHeight = style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
+      mRealWidth = style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
+      mRealHeight = style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
       for(var i:uint = 0; i < numChildren; ++i) {
         var o:DisplayObject = getChildAt(i);
         var innerW:Number;
@@ -70,11 +73,9 @@ package com.minimalui.base {
             + Math.max(style.getNumber(Element.PADDING_TOP), c.style.getNumber(Element.MARGIN_TOP))
             + Math.max(style.getNumber(Element.PADDING_BOTTOM), c.style.getNumber(Element.MARGIN_BOTTOM));
         }
-        mMeasuredWidth = Math.max(mMeasuredWidth, innerW);
-        mMeasuredHeight = Math.max(mMeasuredHeight, innerH);
+        mRealWidth = Math.max(mRealWidth, innerW);
+        mRealHeight = Math.max(mRealHeight, innerH);
       }
-      mRealWidth = mMeasuredWidth;
-      mRealHeight = mMeasuredHeight;
     }
 
     protected override function coreLayout():void {

@@ -10,6 +10,7 @@ package com.minimalui.factories {
   import com.minimalui.controls.Label;
   import com.minimalui.controls.Button;
   import com.minimalui.controls.Input;
+  import com.minimalui.controls.Checkbox;
 
   public class XMLFactory {
     public var mCSS:Object = {};
@@ -103,12 +104,14 @@ package com.minimalui.factories {
 
     public function name2class(name:String):Class {
       switch(name) {
+      case "box": return BaseContainer;
       case "hbox": return HBox;
       case "vbox": return VBox;
       case "label": return Label;
       case "button": return Button;
       case "input": return Input;
       case "scrollControlBase": return ScrollControlBase;
+      case "checkbox": return Checkbox;
       }
       return null;
     }

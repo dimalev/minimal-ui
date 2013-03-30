@@ -118,7 +118,7 @@ package com.minimalui.controls {
       setChanged();
     }
 
-    private function construct():void {
+    protected function construct():void {
       mLabel = new Label(getStyle("text") as String);
       addChild(mLabel);
     }

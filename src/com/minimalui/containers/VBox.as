@@ -29,9 +29,8 @@ package com.minimalui.containers {
         f.push(c.style.getNumber("margin-top"), c.measuredHeight, c.style.getNumber("margin-bottom"));
       }
       f.push(mStyle.getNumber("padding-bottom"));
-      mMeasuredWidth = mRealWidth = w;
+      mRealWidth = w;
       mRealHeight = pack(f, style.getNumber("spacing"));
-      mMeasuredHeight = mRealHeight;
     }
 
     protected override function coreLayout():void {

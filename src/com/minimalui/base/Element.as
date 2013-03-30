@@ -39,7 +39,7 @@ package com.minimalui.base {
     /**
      * Current element style set.
      */
-    protected var mStyle:Style = new Style;
+    protected var mStyle:Style;
     /**
      * Element preferred width.
      */
@@ -255,6 +255,8 @@ package com.minimalui.base {
       setDirty();
       invalidateSize();
       setChanged();
+      mStyle = new Style(this);
+      mStyle.addInvalidateSize(WIDTH, HEIGHT);
       addEventListener(Event.ADDED, onNewParent);
       addDecorator(new Border(this));
       addDecorator(new Background(this));
@@ -307,11 +309,7 @@ package com.minimalui.base {
      * @param name Property name.
      * @param v New Property groove.
      */
-    public final function setStyle(name:String, v:Object):void {
-      if(mResizableAttributes.indexOf(name) >= 0) invalidateSize();
-      setDirty();
-      mStyle.setValue(name, v);
-    }
+    public final function setStyle(name:String, v:Object):void { mStyle.setValue(name, v); }
 
     /**
      * Not the best style value getter. This method makes you using cast in the code, better to use typed getter.
@@ -327,10 +325,7 @@ package com.minimalui.base {
      *
      * @param css CSS descriptor.
      */
-    public final function setStyles(css:String):void {
-      mStyle.setCSS(css);
-      setDirty();
-    }
+    public final function setStyles(css:String):void { mStyle.setCSS(css); }
 
     public final function commitProperties():void {
       coreCommitProperties();
@@ -340,15 +335,25 @@ package com.minimalui.base {
 
     public final function measure():void {
       mMeasuredWidth = mMeasuredHeight = mRealWidth = mRealHeight = NaN;
-      coreMeasure();
-      if(isNaN(mRealWidth)) mRealWidth = mMeasuredWidth;
-      if(isNaN(mRealHeight)) mRealHeight = mMeasuredHeight;
       if(mStyle.hasValue("width")) mMeasuredWidth = mStyle.getNumber("width");
       if(mStyle.hasValue("height")) mMeasuredHeight = mStyle.getNumber("height");
-      if(isNaN(mMeasuredWidth)) mMeasuredWidth = 100;
-      if(isNaN(mMeasuredHeight)) mMeasuredHeight = 100;
+      coreMeasure();
       if(isNaN(mRealWidth)) mRealWidth = mMeasuredWidth;
+      else if(isNaN(mMeasuredWidth)) mMeasuredWidth = mRealWidth;
       if(isNaN(mRealHeight)) mRealHeight = mMeasuredHeight;
+      else if(isNaN(mMeasuredHeight)) mMeasuredHeight = mRealHeight;
+      if(isNaN(mMeasuredWidth)) {
+        mMeasuredWidth = 100;
+        mRealWidth = mMeasuredWidth;
+      }
+      if(isNaN(mMeasuredHeight)) {
+        mMeasuredHeight = 100;
+        mRealHeight = mMeasuredHeight;
+      }
+      mMeasuredHeight = Math.ceil(mMeasuredHeight);
+      mMeasuredWidth = Math.ceil(mMeasuredWidth);
+      mRealHeight = Math.ceil(mRealHeight);
+      mRealWidth = Math.ceil(mRealWidth);
       mResized = false;
     }
 

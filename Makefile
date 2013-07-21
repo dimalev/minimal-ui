@@ -1,11 +1,12 @@
 # MXMLC=mxmlc
 MXMLC=./bin/fcsh.py
+COMPC=compc
 
 NAME=minimal-ui
 CAMEL_NAME=MinimalUI
 
 SRC_DIR:=src
-APP_NAME:=TMain.as
+APP_NAME:=Main.as
 
 APP_WIDTH:=800
 APP_HEIGHT:=600
@@ -14,6 +15,7 @@ BG_COLOR:=0xffffff
 
 DEST_DIR:=dest
 DEST_NAME:=${NAME}.swf
+DEST_LIB_NAME:=${NAME}.swc
 
 TEST_LIBS:=lib/flexunit-uilistener.swc:lib/flexunit4.swc
 
@@ -25,13 +27,17 @@ TEST_CASES_SRC:=${TEST_DIR}/cases/*.as
 TEST_APP:=test.swf
 
 TEST_WIDTH:=1024
-TEST_HEIGHT:=600
+TEST_HEIGHT:=800
 
 DEBUG:=true
 
 .PHONY: clean
 
-all: ${DEST_DIR}/${DEST_NAME}
+all: app test
+
+app: ${DEST_DIR}/${DEST_NAME}
+
+lib: ${DEST_DIR}/${DEST_LIB_NAME}
 
 test: ${DEST_DIR}/${TEST_APP}
 
@@ -42,6 +48,11 @@ ${DEST_DIR}/${DEST_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
            --default-background-color ${BG_COLOR} \
            --debug=${DEBUG} \
            ${SRC_DIR}/${APP_NAME}
+
+${DEST_DIR}/${DEST_LIB_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
+	${COMPC} -source-path ${SRC_DIR} \
+           -include-sources ${SRC_DIR}/com/minimalui/ \
+           --output ${DEST_DIR}/${DEST_LIB_NAME}
 
 ${DEST_DIR}/${TEST_APP}: ${TEST_DIR}/${TEST_APP_NAME} ${TEST_RUNNER_SRC} ${TEST_CASES_SRC}
 	${MXMLC} -source-path ${SRC_DIR} ${CLASSPATH_DIR} \

@@ -33,10 +33,8 @@ package com.minimalui.hatchery {
       var reg:RegExp = /(#| )?([\w\d\-]+)/g;
       var holder:Element = mHost;
       while(res = reg.exec(path)) {
-        trace(holder);
         if(!(holder is BaseContainer)) return null;
         if(res[1] == "#") {
-          trace(res[2]);
           holder = (holder as BaseContainer).getById(res[2]);
         } else {
           return null;

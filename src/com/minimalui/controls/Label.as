@@ -10,7 +10,6 @@ package com.minimalui.controls {
 
   import com.minimalui.base.Element;
   import com.minimalui.base.Style;
-  import com.minimalui.events.FieldChangeEvent;
 
   public class Label extends Element {
     /* font data */
@@ -24,7 +23,7 @@ package com.minimalui.controls {
     public static const TEXT_VALIGN:String = "text-valign";
 
     /* data */
-    public static const TEXT_CONTENT:String = "content";
+    public static const TEXT_CONTENT:String = "text";
 
     private var mRealTextWidth:Number;
     private var mRealTextHeight:Number;
@@ -36,25 +35,26 @@ package com.minimalui.controls {
 
     private var mText:Vector.<TextLine> = new Vector.<TextLine>;
 
-    public function set content(txt:String):void {
+    public function get text():String {
+      return String(mStyle.getString(TEXT_CONTENT));
+    }
+
+    public function set text(txt:String):void {
       setStyle(TEXT_CONTENT, txt);
       setDirty();
-      invalidateSize();
     }
 
     public function Label(text:String = "Label", cssorid:String = null, id:String = null) {
       super(cssorid, id);
+      style.addInvalidateSize(FONT_SIZE, FONT_FAMILY, FONT_WEIGHT, TEXT_CONTENT);
       style.addInheritable(FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN, TEXT_VALIGN);
-      content = text;
+      this.text = text;
     }
 
     protected override function coreCommitProperties():void {
       if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN])))
         mIsFormatChanged = true;
-      if(mIsFormatChanged || hasChanged(Vector.<String>([TEXT_CONTENT]))) {
-        invalidateSize();
-        setChanged();
-      }
+      if(mIsFormatChanged || hasChanged(Vector.<String>([TEXT_CONTENT]))) invalidateSize();
     }
 
     protected override function coreMeasure():void {
@@ -67,10 +67,10 @@ package com.minimalui.controls {
       if(isNaN(mMeasuredHeight)) mMeasuredHeight = mRealHeight;
     }
 
-    protected override function coreRedraw():void {
+    protected override function coreLayout():void {
       clean();
 
-      if(mViewPort.width < mRealWidth) changeBlock(mViewPort.width);
+      if(mLayoutWidth != mRealWidth) changeBlock(mLayoutWidth);
 
       for each(var tl:TextLine in mText) addChild(tl);
 
@@ -80,16 +80,21 @@ package com.minimalui.controls {
     protected function coreAlign():void {
       var tl:TextLine = null;
 
-     var yy:Number = 0;
-     switch(style.getValue(TEXT_VALIGN) || "top") {
-     case "middle":
-       yy = (mViewPort.height - mRealTextHeight) / 2;
-       break;
-     case "bottom":
-       yy = mViewPort.height - mRealTextHeight;
-       break;
-     }
-     if(yy < 0) yy = 0;
+      var pl:Number = style.getNumber(Element.PADDING_LEFT);
+      var pr:Number = style.getNumber(Element.PADDING_RIGHT);
+      var pt:Number = style.getNumber(Element.PADDING_TOP);
+      var pb:Number = style.getNumber(Element.PADDING_BOTTOM);
+
+      var yy:Number = pt;
+      switch(style.getValue(TEXT_VALIGN) || "top") {
+      case "middle":
+        yy = (mLayoutHeight - mRealTextHeight - pt - pb) / 2 + pt;
+        break;
+      case "bottom":
+        yy = mLayoutHeight - mRealTextHeight - pb;
+        break;
+      }
+      // if(yy < 0) yy = 0;
 
       for(var i:uint = 0; i < numChildren; ++i) {
         tl = getChildAt(i) as TextLine;
@@ -97,13 +102,13 @@ package com.minimalui.controls {
         yy += tl.height + tl.descent;
         switch(style.getValue(TEXT_ALIGN) || "left") {
         case "center":
-          tl.x = (mViewPort.width - tl.width) / 2;
+          tl.x = ((mLayoutWidth - pl - pr) - tl.width) / 2 + pl;
           break;
         case "left":
-          tl.x = 0;
+          tl.x = pl;
           break;
         case "right":
-          tl.x = mViewPort.width - tl.width;
+          tl.x = mLayoutWidth - tl.width - pr;
           break;
         }
       }
@@ -124,12 +129,12 @@ package com.minimalui.controls {
     }
 
     private function changeBlock(w:Number):void {
-      var textElement:TextElement = new TextElement(getStyle("content") as String, mFormat);
-      // if(style.hasValue("width")) {
+      var textElement:TextElement = new TextElement(style.getString(TEXT_CONTENT), mFormat);
+      if(w < 4000 && getStyle(TEXT_ALIGN) == "justify") {
         var tj:TextJustifier = TextJustifier.getJustifierForLocale("en");
         tj.lineJustification = LineJustification.ALL_BUT_LAST;
         mTextBlock = new TextBlock(null, null, tj);
-      // } else mTextBlock = new TextBlock();
+      } else mTextBlock = new TextBlock();
       mTextBlock.content = textElement;
 
       mRealTextWidth = 0;

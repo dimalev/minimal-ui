@@ -4,21 +4,38 @@ package com.minimalui.factories {
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Decorator;
   import com.minimalui.base.DecoratorDescriptor;
-  import com.minimalui.containers.VBox;
-  import com.minimalui.containers.HBox;
-  import com.minimalui.containers.ScrollControlBase;
-  import com.minimalui.controls.Label;
-  import com.minimalui.controls.Button;
-  import com.minimalui.controls.Input;
-  import com.minimalui.controls.Checkbox;
+  import com.minimalui.factories.handlers.HelpersHandler;
+  import com.minimalui.factories.handlers.ContainerLayoutHandler;
 
   public class XMLFactory {
     public var mCSS:Object = {};
     public var mCSSperObject:Object = {};
 
+    protected var mMapping:Object = {};
     protected var mDecorators:Vector.<DecoratorDescriptor> = new Vector.<DecoratorDescriptor>;
+    protected var mAttributeTransformers:Vector.<IXMLAttributeTransformer> = new Vector.<IXMLAttributeTransformer>;
+    protected var mAttributeHandlers:Vector.<IXMLAttributeHandler> = new Vector.<IXMLAttributeHandler>;
+
+    public function addAttributeHandler(ah:IXMLAttributeHandler):void {
+      mAttributeHandlers.push(ah);
+    }
+
+    public function addAttributeTransformer(at:IXMLAttributeTransformer):void {
+      mAttributeTransformers.push(at);
+    }
+
+    public function addTagHandler(name:String, cl:Class):void {
+      if(mMapping.hasOwnProperty(name))
+        trace("[WARNING] Name is already occupied " + name + ": " + cl);
+      mMapping[name] = cl;
+    }
 
     public function XMLFactory() {
+      addAttributeHandler(new HelpersHandler);
+      addAttributeHandler(new ContainerLayoutHandler);
+
+      addTagHandler("element", Element);
+      addTagHandler("box", BaseContainer);
     }
 
     public function addDecorator(d:DecoratorDescriptor):void {
@@ -40,79 +57,83 @@ package com.minimalui.factories {
           if(values.length != 2) continue;
           var style:String = values[0].replace(/(^\s*|\s*$)/g, "");
           var value:String = values[1].replace(/(^\s*|\s*$)/g, "");
-          if(style == "margin" || style == "padding") {
-            for each(var s1:String in ["-left", "-top", "-bottom", "-right"])
-              line += style + s1 + ":" + value + ";";
-          } else {
-            line += style + ":" + value + ";";
-            for each(var d:DecoratorDescriptor in mDecorators) {
-              if(d.styles.indexOf(style) < 0) continue;
-              if(cssd.decorators.indexOf(d) < 0) cssd.decorators.push(d);
-            }
-          }
+          cssd.extraStyles[style] = value;
         }
-        cssd.stylesLine = line;
         if(name.charAt(0) == ".") mCSS[name.substr(1)] = cssd;
         else mCSSperObject[name] = cssd;
       }
     }
 
-    public function decode(xml:XML):Element {
+    private function merge(o1:Object, o2:Object):void {
+      for(var k:String in o2)
+        if(o2.hasOwnProperty(k)) o1[k] = o2[k];
+    }
+
+    public function decode(xml:XML, host:Object = null, el:Element = null):Element {
       var d:DecoratorDescriptor;
-      var el:Element = new (name2class(xml.localName()));
-      var styles:String = "";
+      var name:String;
+      var value:String;
+      var cl:Class = name2class(xml.localName());
+      if(null == el) el = new cl;
+      else if(!(el is cl)) trace("[WARNING] XML factory create element type mismatch! Expected " + cl);
+      var styles:Object = [];
       var dd:Vector.<DecoratorDescriptor> = new Vector.<DecoratorDescriptor>;
-      if(mCSSperObject.hasOwnProperty(xml.localName())) {
-        styles += mCSSperObject[xml.localName()].stylesLine;
-        for each(d in mCSSperObject[xml.localName()].decorators)
-          if(dd.indexOf(d) < 0) dd.push(d);
-      }
+      var rawCSS:String = "";
+      if(mCSSperObject.hasOwnProperty(xml.localName()))
+        merge(styles, mCSSperObject[xml.localName()].extraStyles);
       for each(var attribute:XML in xml.attributes()) {
-        var name:String = attribute.localName();
+        name = attribute.localName();
+        value = attribute.toString();
         if(name == "class") {
-          var classes:Array = attribute.toString().split(" ");
+          var classes:Array = value.split(" ");
           for each(var c:String in classes) {
             if(!mCSS.hasOwnProperty(c)) continue;
-            styles += mCSS[c].stylesLine;
-            for each(d in mCSS[c].decorators)
-              if(dd.indexOf(d) < 0) dd.push(d);
+            merge(styles, mCSS[c].extraStyles);
           }
-        } else {
-          if(name == "margin") el.margins = Number(attribute.toString());
-          else if(name == "padding") el.paddings = Number(attribute.toString());
-          else if(name == "id") el.id = attribute.toString();
-          else {
-            styles += name + ": " + attribute.toString().replace(/:/g, "\\:").replace(/;/g , "\\;") + ";";
-            for each(d in mDecorators) {
-              if(d.styles.indexOf(name) < 0) continue;
-              if(dd.indexOf(d) < 0) dd.push(d);
-            }
+        } else styles[name] = value;
+      }
+
+      for(name in styles) {
+        value = styles[name];
+        var isHandled:Boolean = false;
+        for each(var iat:IXMLAttributeTransformer in mAttributeTransformers) {
+          var res:Object = iat.transform(name, value, el, host);
+          if(!res) continue;
+          name = res.newName;
+          value = res.newValue;
+        }
+        for each(var iah:IXMLAttributeHandler in mAttributeHandlers) {
+          if(iah.handle(name, value, el, host)) {
+            isHandled = true;
+            break;
+          }
+        }
+        if(!isHandled) {
+          rawCSS += name + ": " + value.replace(/:/g, "\\:").replace(/;/g , "\\;") + "; ";
+          for each(d in mDecorators) {
+            if(d.styles.indexOf(name) < 0 && !(value == "on" && name == d.name)) continue;
+            if(dd.indexOf(d) < 0) dd.push(d);
           }
         }
       }
 
+      // trace("rawCSS: " + rawCSS);
+
       for each(d in dd) el.addDecorator(d.instanceFor(el));
 
-      el.setStyles(styles);
+      el.setStyles(rawCSS);
       if(!(el is BaseContainer)) return el;
       var bc:BaseContainer = BaseContainer(el);
       for each(var child:XML in xml.children()) {
-          bc.addChild(decode(child));
+        bc.addChild(decode(child, host));
       }
       return el;
     }
 
     public function name2class(name:String):Class {
-      switch(name) {
-      case "box": return BaseContainer;
-      case "hbox": return HBox;
-      case "vbox": return VBox;
-      case "label": return Label;
-      case "button": return Button;
-      case "input": return Input;
-      case "scrollControlBase": return ScrollControlBase;
-      case "checkbox": return Checkbox;
-      }
+      var cl:Class = mMapping[name];
+      if(cl) return cl;
+      trace("[ERROR] Class for object not found: " + name);
       return null;
     }
   }
@@ -121,6 +142,5 @@ package com.minimalui.factories {
 import com.minimalui.base.DecoratorDescriptor;
 
 class CSSDescriptor {
-  public var stylesLine:String;
-  public var decorators:Vector.<DecoratorDescriptor> = new Vector.<DecoratorDescriptor>;
+  public var extraStyles:Object = {};
 }

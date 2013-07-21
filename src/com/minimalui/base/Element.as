@@ -4,28 +4,32 @@ package com.minimalui.base {
   import flash.events.Event;
 
   import com.minimalui.base.Style;
-  import com.minimalui.events.FieldChangeEvent;
-  import com.minimalui.events.StyleNewParentEvent;
-  import com.minimalui.events.ElementResizeEvent;
   import com.minimalui.decorators.Border;
   import com.minimalui.decorators.Background;
 
   /**
    * Base class for Minimal UI package drawing and managing. Extending this class you may be sure to be successfully
-   * updated, validated and layout within Minimal UI runtime routes. Additionally a set of styles and helpers are
+   * updated, validated, layout and moved within Minimal UI runtime routes. Additionally a set of styles and helpers are
    * already present.
    * Element can be set as Dirty, Invalidated Size, and Changed. On dirty objects commitProperties() is called on
-   * update process. On Elements with invalidated size, measure() and layout() is called on update process. When redraw
-   * is called, Element checks if it was changed. Dirty object can set itself with invalidated size on
-   * commitProperties() call. Both dirty element and element with invalidated size are subject to be redrawn if Changed
-   * is set when commitProperties(), measure() or layout() is called. Layout Manager resolves commitProperties and
-   * redraw in random order, layout has to be called by each parent for his children, and measure is called recursively
-   * from children to parents.
+   * update process. On Elements with invalidated size, measure(), layout(w, h) and move(x, y) is called on update
+   * process. When redraw  is called, Element checks if it was changed. Dirty object can set itself with invalidated
+   * size on  commitProperties() call. Both dirty element and element with invalidated size are subject to be redrawn if
+   * Changed is set when any of the steps is called. Layout Manager resolves commitProperties and redraw in random
+   * order, layout(w, h) and move(x, y) has to be called by each parent for his children, and measure is called
+   * recursively from children to parents.
    */
   public class Element extends Sprite {
     public static const WIDTH:String = "width";
     public static const HEIGHT:String = "height";
-    public static const SIZES_PROPERTIES:Vector.<String> = Vector.<String>([WIDTH, HEIGHT]);
+    public static const PERCENT_WIDTH:String = "percent-width";
+    public static const PERCENT_HEIGHT:String = "percent-height";
+    public static const SIZING:String = "sizing";
+
+    public static const LEFT:String = "left";
+    public static const RIGHT:String = "right";
+    public static const TOP:String = "top";
+    public static const BOTTOM:String = "bottom";
 
     public static const PADDING_LEFT:String = "padding-left";
     public static const PADDING_RIGHT:String = "padding-right";
@@ -35,6 +39,9 @@ package com.minimalui.base {
     public static const MARGIN_RIGHT:String = "margin-right";
     public static const MARGIN_TOP:String = "margin-top";
     public static const MARGIN_BOTTOM:String = "margin-bottom";
+
+    public static const SIZING_STRICT:String = "strict";
+    public static const SIZING_ADAPTIVE:String = "adaptive";
 
     /**
      * Current element style set.
@@ -57,9 +64,13 @@ package com.minimalui.base {
      */
     protected var mRealHeight:Number;
     /**
-     * Parent area dedicated to this object. This is what layout wants this object to look like.
+     * Width dedicated to the element by his parent.
      */
-    protected var mViewPort:Rectangle;
+    protected var mLayoutWidth:Number;
+    /**
+     * Height dedicated to the element by his parent.
+     */
+    protected var mLayoutHeight:Number;
 
     /**
      * List of Decorators used to draw this object.
@@ -88,6 +99,8 @@ package com.minimalui.base {
       mIsChanged = true;
       layoutManager.setChanged(this);
     }
+
+    public final function set versatile(b:Boolean):void { layoutManager.setVersatile(this, b); }
 
     /**
      * Get layout manager associated with this element.
@@ -175,6 +188,7 @@ package com.minimalui.base {
      */
     public final function invalidateSize():void {
       if(mResized) return;
+      mLayoutWidth = mLayoutHeight = NaN;
       mResized = true;
       layoutManager.invalidateSize(this);
     }
@@ -210,16 +224,34 @@ package com.minimalui.base {
      */
     public final override function get height():Number {
       if(isSizeInvalid) layoutManager.forceUpdate();
-      if(!mViewPort) return Math.max(super.height, measuredHeight);
-      return Math.max(super.height, mViewPort.height);
+      if(style.getValue(SIZING) == SIZING_STRICT) {
+        if(isNaN(mLayoutHeight)) {
+          if(isNaN(mMeasuredHeight)) return Math.ceil(super.height);
+          else return Math.ceil(measuredHeight);
+        }
+        return Math.ceil(mLayoutHeight);
+      }
+      if(isNaN(mLayoutHeight)) return Math.ceil(Math.max(measuredHeight));
+      return Math.ceil(Math.max(mLayoutHeight));
+      // if(isNaN(mLayoutHeight)) return Math.ceil(Math.max(super.height, measuredHeight));
+      // return Math.ceil(Math.max(super.height, mLayoutHeight));
     }
     /**
      * Real element width. To get preferred size check styles.
      */
     public final override function get width():Number {
       if(isSizeInvalid) layoutManager.forceUpdate();
-      if(!mViewPort) return Math.max(super.width, measuredWidth);
-      return Math.max(super.width, mViewPort.width);
+      if(style.getValue(SIZING) == SIZING_STRICT) {
+        if(isNaN(mLayoutWidth)) {
+          if(isNaN(mMeasuredWidth)) return Math.ceil(super.width);
+          else return Math.ceil(measuredWidth);
+        }
+        return Math.ceil(mLayoutWidth);
+      }
+      if(isNaN(mLayoutWidth)) return Math.ceil(Math.max(measuredWidth));
+      return Math.ceil(Math.max(mLayoutWidth));
+      // if(isNaN(mLayoutWidth)) return Math.ceil(Math.max(super.width, measuredWidth));
+      // return Math.ceil(Math.max(super.width, mLayoutWidth));
     }
 
     /**
@@ -329,44 +361,46 @@ package com.minimalui.base {
 
     public final function commitProperties():void {
       coreCommitProperties();
-      mStyle.cleanChanged();
       mDirty = false;
     }
 
     public final function measure():void {
       mMeasuredWidth = mMeasuredHeight = mRealWidth = mRealHeight = NaN;
+
       if(mStyle.hasValue("width")) mMeasuredWidth = mStyle.getNumber("width");
       if(mStyle.hasValue("height")) mMeasuredHeight = mStyle.getNumber("height");
+
       coreMeasure();
+
       if(isNaN(mRealWidth)) mRealWidth = mMeasuredWidth;
       else if(isNaN(mMeasuredWidth)) mMeasuredWidth = mRealWidth;
       if(isNaN(mRealHeight)) mRealHeight = mMeasuredHeight;
       else if(isNaN(mMeasuredHeight)) mMeasuredHeight = mRealHeight;
-      if(isNaN(mMeasuredWidth)) {
-        mMeasuredWidth = 100;
-        mRealWidth = mMeasuredWidth;
-      }
-      if(isNaN(mMeasuredHeight)) {
-        mMeasuredHeight = 100;
-        mRealHeight = mMeasuredHeight;
-      }
+
+      if(isNaN(mMeasuredWidth)) mRealWidth = mMeasuredWidth = 1;
+      if(isNaN(mMeasuredHeight)) mRealHeight = mMeasuredHeight = 1;
+
       mMeasuredHeight = Math.ceil(mMeasuredHeight);
       mMeasuredWidth = Math.ceil(mMeasuredWidth);
       mRealHeight = Math.ceil(mRealHeight);
       mRealWidth = Math.ceil(mRealWidth);
+    }
+
+    public final function layout(w:Number = NaN, h:Number = NaN):void {
+      if(isNaN(w)) w = measuredWidth;
+      if(isNaN(h)) h = measuredHeight;
+      mLayoutWidth = Math.ceil(w);
+      mLayoutHeight = Math.ceil(h);
+      coreLayout();
       mResized = false;
     }
 
-    public final function layout(viewPort:Rectangle = null):void {
-      mViewPort = viewPort;
-      if(!mViewPort) mViewPort = new Rectangle(super.x, super.y, measuredWidth, measuredHeight);
-      if(mStyle.hasValue("x")) mViewPort.x = mStyle.getNumber("x");
-      if(mStyle.hasValue("y")) mViewPort.y = mStyle.getNumber("y");
-      mViewPort.width = Math.ceil(mViewPort.width);
-      mViewPort.height = Math.ceil(mViewPort.height);
-      coreX = Math.round(mViewPort.x);
-      coreY = Math.round(mViewPort.y);
-      coreLayout();
+    public final function move(x:Number = NaN, y:Number = NaN):void {
+      if(style.hasValue("x")) x = style.getNumber("x");
+      if(style.hasValue("y")) y = style.getNumber("y");
+      super.x = Math.ceil(x);
+      super.y = Math.ceil(y);
+      coreMove();
     }
 
     public final function redraw():void {
@@ -379,6 +413,10 @@ package com.minimalui.base {
       mIsChanged = false;
     }
 
+    public final function update():void {
+      coreUpdate();
+    }
+
     protected function hasChanged(values:Vector.<String>):Boolean {
       return mStyle.changed.some(function(v:String, k:int, a:Vector.<String>):Boolean {
           return this.indexOf(v) >= 0;
@@ -389,17 +427,15 @@ package com.minimalui.base {
       if(hasChanged(Vector.<String>(['x', 'y']))) invalidateSize();
     }
 
-    protected function coreMeasure():void {
-      "Implement ME!";
-    }
+    protected function coreMeasure():void { "Implement ME!"; }
 
-    protected function coreLayout():void {
-      "Implement ME!";
-      this.coreX = mViewPort.x;
-      this.coreY = mViewPort.y;
-    }
+    protected function coreLayout():void { "Implement ME!"; }
+
+    protected function coreMove():void { "Implement ME!"; }
 
     protected function coreRedraw():void { "Implement ME!"; }
+
+    protected function coreUpdate():void { "Implement ME!"; }
 
     public override function toString():String { return "[" + super.toString() + "(id="+mId+")]"; }
   }

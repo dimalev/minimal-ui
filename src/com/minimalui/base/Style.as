@@ -2,9 +2,6 @@ package com.minimalui.base {
   import flash.events.EventDispatcher;
   import flash.events.Event;
 
-  import com.minimalui.events.FieldChangeEvent;
-  import com.minimalui.events.StyleNewParentEvent;
-
   public class Style extends EventDispatcher {
     private var mFields:Vector.<String> = new Vector.<String>;
     private var mChangedFields:Vector.<String> = new Vector.<String>;
@@ -48,8 +45,15 @@ package com.minimalui.base {
     }
 
     public function addInheritable(...names):void {
+      var count:uint = names.length;
+      var deleteOwn:Boolean = false;
+      if(names[count - 1] is Boolean) {
+        deleteOwn = true;
+        names.splice(count - 1, 1);
+      }
       for each(var name:String in names) {
         if(isInheritable(name)) continue;
+        if(deleteOwn) delValue(name);
         mInheritableFields.push(name);
       }
     }
@@ -83,8 +87,8 @@ package com.minimalui.base {
         var d:int = p.indexOf(":");
         if(d < 0) continue;
         var name:String = p.substr(0, d).replace(/(^\s+|\s+$)/g, "");
-        var value:String = p.substr(d+1).replace(/(^\s+|\s+$)/g, "").replace(/\\:/, ":").replace(/\\;/, ";");
-        if(value.match(/^\s*(0x[0-9a-fA-F]+?|\d+)\s*$/)) setValue(name, Number(value));
+        var value:String = p.substr(d+1).replace(/(^\s+|\s+$)/g, "").replace(/\\:/g, ":").replace(/\\;/g, ";");
+        if(value.match(/^\s*(0x[0-9a-fA-F]+?|\d+(\.\d+)?)\s*$/)) setValue(name, Number(value));
         else setValue(name, value);
       }
     }
@@ -98,8 +102,8 @@ package com.minimalui.base {
       return hasOwnValue(name) ? mData[name] : mParent.getValue2(name);
     }
 
-    public function getString(name:String):String { return hasValue(name) ? (getValue(name) as String) : ""; }
-    public function getNumber(name:String):Number { return hasValue(name) ? (getValue(name) as Number) : 0; }
+    public function getString(name:String):String { return hasValue(name) ? String(getValue(name)) : ""; }
+    public function getNumber(name:String):Number { return hasValue(name) ? Number(getValue(name)) : 0; }
 
     public function setValue(name:String, value:Object):void {
       if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
@@ -129,6 +133,9 @@ package com.minimalui.base {
       delete mData[name];
       mFields.splice(mFields.indexOf(name), 1);
       addChanged(name);
+      mTarget.setDirty();
+      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
+      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
       return true;
     }
 
@@ -147,7 +154,7 @@ package com.minimalui.base {
                                                     }, { prev: null });
     }
 
-    protected function get allChanged():Vector.<String> {
+    public function get allChanged():Vector.<String> {
       if(!mParent) return changed;
       var res:Vector.<String> = mParent.allChanged;
       return res.concat(mChangedFields).sort(Array.CASEINSENSITIVE)

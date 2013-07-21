@@ -4,6 +4,7 @@ package com.minimalui.base {
     private var mName:String;
     private var mProto:Class;
 
+    public function get proto():Class { return mProto; }
     public final function get styles():Vector.<String> { return mStyles; }
     public final function get name():String { return mName; }
 

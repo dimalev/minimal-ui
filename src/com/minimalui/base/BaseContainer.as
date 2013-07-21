@@ -2,6 +2,9 @@ package com.minimalui.base {
   import flash.display.DisplayObject;
   import flash.geom.Rectangle;
 
+  import com.minimalui.base.layout.FreeLayout;
+  import com.minimalui.base.layout.ILayout;
+
   /**
    * Basic container. Groups elements independently one above another, while aligning them according to settings.
    * Brings valuable tool functions for such derives as Horizontal and Vertical box.
@@ -9,6 +12,27 @@ package com.minimalui.base {
   public class BaseContainer extends Element {
     public static const ALIGN:String = "align";
     public static const VALIGN:String = "valign";
+    public static const SPACING:String = "spacing";
+
+    protected var mLayout:ILayout = getLayout();
+
+    public function get containerLayout():ILayout { return mLayout; }
+
+    public function set containerLayout(l:ILayout):void {
+      mLayout = l;
+      mLayout.target = this;
+      invalidateSize();
+    }
+
+    public function get visibleChildren():Vector.<DisplayObject> {
+      var res:Vector.<DisplayObject> = new Vector.<DisplayObject>;
+      for(var i:uint = 0; i < numChildren; ++i) {
+        var c:DisplayObject = getChildAt(i);
+        if(!c.visible) continue;
+        res.push(c);
+      }
+      return res;
+    }
 
     /**
      * Constructs container with given CSS properties and/or id.
@@ -18,7 +42,15 @@ package com.minimalui.base {
      */
     public function BaseContainer(idorcss:String = null, id:String = null) {
       super(idorcss, id);
+      mLayout.target = this;
     }
+
+    /**
+     * Layout provider.
+     *
+     * @returns Layout manager for this container.
+     */
+    protected function getLayout():ILayout { return new FreeLayout(); }
 
     public override function addChild(d:DisplayObject):DisplayObject {
       var e:Element = d as Element;
@@ -55,61 +87,15 @@ package com.minimalui.base {
     }
 
     protected override function coreMeasure():void {
-      mRealWidth = style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
-      mRealHeight = style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
-      for(var i:uint = 0; i < numChildren; ++i) {
-        var o:DisplayObject = getChildAt(i);
-        var innerW:Number;
-        var innerH:Number;
-        if(!(o is Element)) {
-          innerW = o.width + style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);
-          innerH = o.height + style.getNumber(Element.PADDING_TOP) + style.getNumber(Element.PADDING_BOTTOM);
-        } else {
-          var c:Element = o as Element;
-          innerW = c.measuredWidth
-            + Math.max(style.getNumber(Element.PADDING_LEFT), c.style.getNumber(Element.MARGIN_LEFT))
-            + Math.max(style.getNumber(Element.PADDING_RIGHT), c.style.getNumber(Element.MARGIN_RIGHT));
-          innerH = c.measuredHeight
-            + Math.max(style.getNumber(Element.PADDING_TOP), c.style.getNumber(Element.MARGIN_TOP))
-            + Math.max(style.getNumber(Element.PADDING_BOTTOM), c.style.getNumber(Element.MARGIN_BOTTOM));
-        }
-        mRealWidth = Math.max(mRealWidth, innerW);
-        mRealHeight = Math.max(mRealHeight, innerH);
-      }
+      var size:Rectangle = mLayout.measure();
+      mRealWidth = size.width;
+      mRealHeight = size.height;
     }
 
     protected override function coreLayout():void {
-      for(var i:uint = 0; i < numChildren; ++i) {
-        var c:Element = getChildAt(i) as Element;
-        if(null == c) continue;
-        var w:Number = c.measuredWidth;
-        var h:Number = c.measuredHeight;
-        var l:Number = Math.max(mStyle.getNumber("padding-left"), c.style.getNumber("margin-left"));
-        var r:Number = Math.max(mStyle.getNumber("padding-right"), c.style.getNumber("margin-right"));
-        var t:Number = Math.max(mStyle.getNumber("padding-top"), c.style.getNumber("margin-top"));
-        var b:Number = Math.max(mStyle.getNumber("padding-bottom"), c.style.getNumber("margin-bottom"));
-        if(c.style.hasValue("percent-width"))
-          w = c.style.getNumber("percent-width") * (mViewPort.width - l - r) / 100;
-        if(c.style.hasValue("percent-height"))
-          w = c.style.getNumber("percent-height") * (mViewPort.height - t - b) / 100;
-        switch(getStyle("align") || "left") {
-        case "center":
-          l = (mViewPort.width - w) / 2;
-          break;
-        case "right":
-          l = mViewPort.width - w - r;
-          break;
-        }
-        switch(getStyle("valign") || "top") {
-        case "middle":
-          t = (mViewPort.height - h) / 2;
-          break;
-        case "bottom":
-          t = mViewPort.height - h - b;
-          break;
-        }
-        c.layout(new Rectangle(l, t, w, h));
-      }
+      var size:Rectangle = mLayout.layout(mLayoutWidth, mLayoutHeight);
+      mLayoutWidth = Math.max(mLayoutWidth, size.width);
+      mLayoutHeight = Math.max(mLayoutHeight, size.height);
       setChanged();
     }
 
@@ -120,8 +106,16 @@ package com.minimalui.base {
       var N:uint = (f.length - 2) / 3;
       var res:Number = 0;
       for(var i:uint = 1; i <= N; ++i)
-        res += Math.max(f[i*3-3], f[i*3-2], s) + f[i*3-1];
-      res += Math.max(f[i*3-3], f[i*3-2], s);
+        res += Math.max(f[i*3-3], f[i*3-2], (i > 0 ? s : 0)) + f[i*3-1];
+      res += Math.max(f[i*3-3], f[i*3-2]);
+      return res;
+    }
+
+    protected function maxex(o:Object):Object {
+      var res:Object = {};
+      for(var key:String in o)
+        if(o.hasOwnProperty(key))
+          res[key] = Math.max.apply(Math, o[key]);
       return res;
     }
   }

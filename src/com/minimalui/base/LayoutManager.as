@@ -22,6 +22,8 @@ package com.minimalui.base {
       sDefault = lm;
     }
 
+    private var mVersatiles:Vector.<Element> = new Vector.<Element>;
+
     private var mDirty:Vector.<Element> = new Vector.<Element>;
     private var mResized:Vector.<Element> = new Vector.<Element>;
     private var mChanged:Vector.<Element> = new Vector.<Element>;
@@ -46,9 +48,13 @@ package com.minimalui.base {
      *
      * @param st Reference to stage object. One of uses - update elements on EXIT_FRAME event
      */
-    public function LayoutManager(st:Stage) {
-      mStage = st;
-      mStage.addEventListener(Event.EXIT_FRAME, tick);
+    public function LayoutManager(st:Stage = null) {
+      // TODO: move no-staged layout into another layout strategy - stage-less.
+      if(st) {
+        mStage = st;
+        mStage.addEventListener(Event.ENTER_FRAME, beforeTick);
+        mStage.addEventListener(Event.EXIT_FRAME, tick);
+      }
     }
 
     /**
@@ -59,6 +65,21 @@ package com.minimalui.base {
     public function setDirty(e:Element):void {
       if(mDirty.indexOf(e) >=0) return;
       mDirty.push(e);
+    }
+
+    /**
+     * Marks element as persistently changed. Calls redraw on each enter frame.
+     *
+     * @param e Target element.
+     * @param bb If it is versatile.
+     */
+    public function setVersatile(e:Element, b:Boolean):void {
+      var i:int = mVersatiles.indexOf(e);
+      if(b) {
+        if(i < 0) mVersatiles.push(e);
+      } else {
+        if(i >= 0) mVersatiles.splice(i, 1);
+      }
     }
 
     /**
@@ -84,6 +105,15 @@ package com.minimalui.base {
     /**
      * @private
      */
+    public function beforeTick(event:Event):void {
+      var versatiles:Vector.<Element> = mVersatiles.slice();
+      for each(var versatile:Element in versatiles)
+        if(!versatile.isChanged) versatile.update();
+    }
+
+    /**
+     * @private
+     */
     public function tick(event:Event):void { forceUpdate(); }
 
     /**
@@ -91,8 +121,10 @@ package com.minimalui.base {
      */
     public function forceUpdate():void {
       mReport.startReport();
-      mReport.stage(LayoutReports.COMMIT_STEP, mDirty.slice());
-      commitStage();
+      while(mDirty.length > 0) {
+        mReport.stage(LayoutReports.COMMIT_STEP, mDirty.slice());
+        commitStage();
+      }
       layoutStage();
       mReport.stage(LayoutReports.LAYOUT_STEP, mMeasured.splice(0, mMeasured.length));
       mReport.stage(LayoutReports.REDRAW_STEP, mChanged.slice());
@@ -101,8 +133,10 @@ package com.minimalui.base {
     }
 
     private function commitStage():void {
+      var e:Element;
       var dirty:Vector.<Element> = mDirty.splice(0, mDirty.length);
-      for each(var e:Element in dirty) e.commitProperties();
+      for each(e in dirty) e.commitProperties();
+      for each(e in dirty) e.style.cleanChanged();
     }
 
     private function layoutStage():void {
@@ -122,9 +156,12 @@ package com.minimalui.base {
 
       mResized.splice(0, mResized.length); // All for measurement
 
-      for each(e in parents) recursiveMeasure(e);
+      for each(e in parents) /*if(e.stage)*/ recursiveMeasure(e); // make root-element dependent!
 
-      for each(e in parents) e.layout();
+      for each(e in parents) /*if(e.stage)*/ { // make root-element dependent!
+        e.layout();
+        e.move();
+      }
     }
 
     private function recursiveMeasure(e:Element):void {

@@ -1,10 +1,17 @@
 package com.minimalui.decorators {
   import com.minimalui.base.Decorator;
+  import com.minimalui.base.DecoratorDescriptor;
   import com.minimalui.base.Element;
 
   public class Background extends Decorator {
     public static const COLOR:String = "background-color";
     public static const TRANSPARENCY:String = "background-transparency";
+    private static var sDescriptor:DecoratorDescriptor =
+      new DecoratorDescriptor("background", Background,
+                              Vector.<String>([COLOR, TRANSPARENCY]));
+
+    public static function get descriptor():DecoratorDescriptor { return sDescriptor; }
+
     public function Background(trg:Element) {
       super(trg);
       trg.style.addChange(COLOR, TRANSPARENCY);

@@ -12,6 +12,7 @@ package com.minimalui.base.layout {
       var me:ElementMetrix = buildTargetMetrix();
       var res:Rectangle = new Rectangle(me.pl + me.pr, me.pt + me.pb);
       for each(var o:ElementMetrix in metrixes) {
+          // TODO: Take position in account and measure bounds depending on x,y of absolute elements
         if(isNaN(o.pw))
           res.width = Math.max(res.width, o.mw + Math.max(me.pl, o.ml) + Math.max(me.pr, o.mr));
         if(isNaN(o.ph))
@@ -62,7 +63,7 @@ package com.minimalui.base.layout {
         else if(!isNaN(o.r)) x = width - o.r - w;
         if(!isNaN(o.t)) y = o.t;
         else if(!isNaN(o.b)) y = height - o.b - h;
-        o.move(x, y);
+        if(o.pos == Element.POSITION_RELATIVE) o.move(x, y);
         res.width = Math.max(res.width, w + l + r);
         res.height = Math.max(res.height, h + t + b);
       }

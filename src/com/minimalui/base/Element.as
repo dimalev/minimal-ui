@@ -25,6 +25,7 @@ package com.minimalui.base {
     public static const PERCENT_WIDTH:String = "percent-width";
     public static const PERCENT_HEIGHT:String = "percent-height";
     public static const SIZING:String = "sizing";
+    public static const POSITION:String = "position";
 
     public static const LEFT:String = "left";
     public static const RIGHT:String = "right";
@@ -42,6 +43,9 @@ package com.minimalui.base {
 
     public static const SIZING_STRICT:String = "strict";
     public static const SIZING_ADAPTIVE:String = "adaptive";
+
+    public static const POSITION_ABSOLUTE:String = "absolute";
+    public static const POSITION_RELATIVE:String = "relative";
 
     /**
      * Current element style set.

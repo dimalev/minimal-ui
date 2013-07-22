@@ -2,11 +2,13 @@ package {
   import flash.display.Sprite;
   import flash.display.DisplayObject;
   import flash.geom.Rectangle;
+  import flash.utils.setTimeout;
 
   import com.minimalui.containers.RawLayout;
   import com.minimalui.decorators.WinButtonBackground;
   import com.minimalui.hatchery.Application;
   import com.minimalui.hatchery.ScreenManager;
+  import com.minimalui.hatchery.ToolTips;
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Element;
   import com.minimalui.base.LayoutManager;
@@ -19,6 +21,7 @@ package {
   import com.minimalui.controls.Button;
   import com.minimalui.factories.XMLFactory;
   import com.minimalui.factories.FullXMLFactory;
+  import com.minimalui.factories.handlers.ToolTipsHandler;
 
   public class Main extends Application {
     [Embed(source="../res/fontawesome-webfont.ttf", fontName="FontAwesome",fontFamily="FontAwesome")]
@@ -33,6 +36,18 @@ package {
 //   background-color: 0xffff;\
 //   align: center;\
 // }\
+text-button {\
+  background-gradient-color-1: yellow;\
+  padding-left: 10;\
+  padding-right: 10;\
+  padding-top: 5;\
+  padding-bottom: 5;\
+}\
+.board {\
+  background-gradient-color-1: 0x222222;\
+  background-gradient-color-1: 0x444444;\
+  padding: 10;\
+}\
 button {\
   padding-left: 10;\
   padding-right: 10;\
@@ -40,7 +55,36 @@ button {\
   padding-bottom: 5;\
 }\
 ");
-      usecase1();
+      usecase5();
+    }
+
+    protected var tooltips:ToolTips;
+
+    public function usecase5():void {
+      tooltips = new ToolTips();
+      mFactory.addAttributeHandler(new ToolTipsHandler(tooltips));
+
+      var xml:XML = <vbox spacing="5" class="board">
+        <hbox spacing="5">
+          <text-button text="hello" alt="say hello" />
+          <text-button text="how are you?" alt="say how are you?" />
+          <text-button text="good bye!" alt="say good bye!" />
+        </hbox>
+        <hbox spacing="5">
+          <text-button text="spare money" alt="spare some money" click="summonBubble" />
+          <element id="yellowBox" width="60" height="60" background-color="yellow" />
+        </hbox>
+      </vbox>;
+
+      addChild(mFactory.decode(xml, this));
+      addChild(tooltips);
+    }
+
+    public var yellowBox:Element;
+    public function summonBubble():void {
+      var money:Element = mFactory.decode(<label background-color="red" font-size="20" font-color="white">10$</label>);
+      tooltips.addToolTip(yellowBox, money);
+      setTimeout(function():void { tooltips.remove(money); }, 2000);
     }
 
     protected var screenManager:ScreenManager;

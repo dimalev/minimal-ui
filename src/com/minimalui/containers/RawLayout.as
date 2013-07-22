@@ -7,6 +7,7 @@ package com.minimalui.containers {
   import com.minimalui.base.RotatedElementMetrix;
   import com.minimalui.base.layout.BaseLayout;
 
+  // TODO: Take care of absolutely positioned elements
   public class RawLayout extends BaseLayout {
     private static const ALIGNS:Array = ["left", "center", "right"];
     private static const VALIGNS:Array = ["top", "middle", "bottom"];

@@ -6,9 +6,9 @@ package {
 
   import com.minimalui.containers.RawLayout;
   import com.minimalui.decorators.WinButtonBackground;
-  import com.minimalui.hatchery.Application;
-  import com.minimalui.hatchery.ScreenManager;
   import com.minimalui.hatchery.ToolTips;
+  import com.minimalui.base.Application;
+  import com.minimalui.base.ScreenManager;
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Element;
   import com.minimalui.base.LayoutManager;
@@ -27,10 +27,9 @@ package {
     [Embed(source="../res/fontawesome-webfont.ttf", fontName="FontAwesome",fontFamily="FontAwesome")]
     private static var FontAwesome:Class;
 
-    private var mFactory:XMLFactory;
-    protected override function onAdd():void {
-      mFactory = new FullXMLFactory();
-      mFactory.setCSS("\
+    protected override function getXMLFactory():XMLFactory {
+      var factory:XMLFactory = new FullXMLFactory();
+      factory.setCSS("\
 // hbox {\
 //   padding: 10;\
 //   background-color: 0xffff;\
@@ -55,15 +54,14 @@ button {\
   padding-bottom: 5;\
 }\
 ");
-      usecase5();
+      return factory;
     }
 
-    protected var tooltips:ToolTips;
+    protected override function onAdd():void {
+      usecase2();
+    }
 
     public function usecase5():void {
-      tooltips = new ToolTips();
-      mFactory.addAttributeHandler(new ToolTipsHandler(tooltips));
-
       var xml:XML = <vbox spacing="5" class="board">
         <hbox spacing="5">
           <text-button text="hello" alt="say hello" />
@@ -76,39 +74,35 @@ button {\
         </hbox>
       </vbox>;
 
-      addChild(mFactory.decode(xml, this));
-      addChild(tooltips);
+      screenManager.displayScreen(uifactory.decode(xml, this));
     }
 
     public var yellowBox:Element;
     public function summonBubble():void {
-      var money:Element = mFactory.decode(<label background-color="red" font-size="20" font-color="white">10$</label>);
+      var money:Element = uifactory.decode(<label background-color="red" font-size="20" font-color="white">10$</label>);
       tooltips.addToolTip(yellowBox, money);
       setTimeout(function():void { tooltips.remove(money); }, 2000);
     }
 
-    protected var screenManager:ScreenManager;
     /*
       Application multi-view test
     */
     public function usecase4():void {
-      screenManager = new ScreenManager("percent-width: 100; percent-height:100");
-      addChild(screenManager);
       var xml:XML = <box id="holder">
         <hbox id="first" valign="middle" align="center" width="200" height="200">
-          <button text="Next" click="showScreenTwo" />
+          <text-button text="Next" click="showScreenTwo" background-color="0xff" />
         </hbox>
         <hbox id="two" valign="middle" align="center" width="200" height="200">
-          <button click="showScreenFirst" text="Left" />
+          <text-button click="showScreenFirst" text="Left" />
           <checkbox text="hello" />
-          <button click="showScreenThree" text="Right" />
+          <text-button click="showScreenThree" text="Right" />
         </hbox>
         <hbox id="three" valign="middle" align="center" width="200" height="200">
-          <button click="showScreenTwo" text="Left" />
+          <text-button click="showScreenTwo" text="Left" />
           <label text="this is end" />
         </hbox>
       </box>;
-      var e:BaseContainer = mFactory.decode(xml, this) as BaseContainer;
+      var e:BaseContainer = uifactory.decode(xml, this) as BaseContainer;
       screenManager.addViews(e);
       screenManager.showScreen("first");
     }
@@ -130,8 +124,8 @@ button {\
                         <button text="move" click="move100" bottom="25" left="0" />
                       </box>
                     </scrollControlBase>;
-      e = mFactory.decode(xml, this) as Element;
-      addChild(e);
+      e = uifactory.decode(xml, this) as Element;
+      screenManager.displayScreen(e);
     }
 
     public function move100():void { e.setStyle("scrollX", 100); }
@@ -141,20 +135,21 @@ button {\
       Huge piece of text wrapped.
     */
      public function usecase2():void {
+       // FIXME: make adjustment for texts with given width
       var xml:XML = <vbox id="main-vbox" width="200" padding="4" background-color="0xffff00" spacing="4">
         <label background-color="0xff00ff" text="When the Nautilus was ready to submerge again, I went back to the saloon. The hatches were closed and our course was set due west." />
-        <button text="Wow!" percent-width="100" />
+        <text-button text="Wow!" percent-width="100" />
       </vbox>;
-      var e:VBox = mFactory.decode(xml, this) as VBox;
-      addChild(e);
+      var e:VBox = uifactory.decode(xml, this) as VBox;
+      screenManager.displayScreen(e);
     }
 
     /*
       Complex view
     */
     public function usecase1():void {
-      mFactory.addDecorator(WinButtonBackground.descriptor);
-      mFactory.setCSS("\
+      uifactory.addDecorator(WinButtonBackground.descriptor);
+      uifactory.setCSS("\
 label {\
   font-size: 20;\
   font-color: 0xff00;\
@@ -215,8 +210,8 @@ vbox {\
         </vbox>
         </scrollControlBase>
       </hbox>;
-      var e:HBox = mFactory.decode(xml, this) as HBox;
-      addChild(e);
+      var e:HBox = uifactory.decode(xml, this) as HBox;
+      screenManager.displayScreen(e);
     }
 
     public var imgBtn:BaseButton;

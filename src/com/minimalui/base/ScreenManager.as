@@ -1,4 +1,4 @@
-package com.minimalui.hatchery {
+package com.minimalui.base {
   import flash.display.MovieClip;
   import flash.events.Event;
 
@@ -43,6 +43,11 @@ package com.minimalui.hatchery {
       return holder;
     }
 
+    public function displayScreen(screen:Element):void {
+      if(mCurrentScreen) removeChild(mCurrentScreen);
+      addChild(mCurrentScreen = screen);
+    }
+
     public final function addScreen(name:String, screen:Element):void {
       mScreens[name] = screen;
     }
@@ -50,8 +55,7 @@ package com.minimalui.hatchery {
     public final function getScreen(name:String):Element { return mScreens[name]; }
 
     public final function showScreen(name:String):void {
-      if(mCurrentScreen) removeChild(mCurrentScreen);
-      addChild(mCurrentScreen = mScreens[name]);
+      displayScreen(mScreens[name]);
     }
 
     public final function clearScreen():void {

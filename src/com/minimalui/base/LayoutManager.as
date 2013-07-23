@@ -4,6 +4,7 @@ package com.minimalui.base {
   import flash.events.Event;
 
   import com.minimalui.base.debug.LayoutReports;
+  import com.minimalui.factories.XMLFactory;
 
   /**
    * Controls and takes care of layout and update process.
@@ -31,6 +32,7 @@ package com.minimalui.base {
     private var mMeasured:Vector.<Element> = new Vector.<Element>;
 
     private var mStage:Stage;
+    private var mFactory:XMLFactory;
     private var mReport:LayoutReports = new LayoutReports;
 
     /**
@@ -44,17 +46,23 @@ package com.minimalui.base {
     public function get stage():Stage { return mStage; }
 
     /**
+     * Default layout factory.
+     */
+    public function get uifactory():XMLFactory { return mFactory; }
+
+    /**
      * Constructor.
      *
      * @param st Reference to stage object. One of uses - update elements on EXIT_FRAME event
      */
-    public function LayoutManager(st:Stage = null) {
+    public function LayoutManager(st:Stage = null, f:XMLFactory = null) {
       // TODO: move no-staged layout into another layout strategy - stage-less.
       if(st) {
         mStage = st;
         mStage.addEventListener(Event.ENTER_FRAME, beforeTick);
         mStage.addEventListener(Event.EXIT_FRAME, tick);
       }
+      mFactory = f;
     }
 
     /**

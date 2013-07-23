@@ -20,6 +20,7 @@ package com.minimalui.base {
     public var ph:Number;
     public var mw:Number;
     public var mh:Number;
+    public var pos:String;
 
     protected var mAdaptee:DisplayObject;
 
@@ -78,6 +79,7 @@ package com.minimalui.base {
         mb = e.style.getNumber(Element.MARGIN_BOTTOM);
         mw = e.measuredWidth;
         mh = e.measuredHeight;
+        pos = e.style.hasValue(Element.POSITION) ? e.style.getString(Element.POSITION) : Element.POSITION_RELATIVE;
         if(!e.isSizeInvalid) {
           w = e.width;
           h = e.height;

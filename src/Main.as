@@ -6,7 +6,6 @@ package {
 
   import com.minimalui.containers.RawLayout;
   import com.minimalui.decorators.WinButtonBackground;
-  import com.minimalui.hatchery.ToolTips;
   import com.minimalui.base.Application;
   import com.minimalui.base.ScreenManager;
   import com.minimalui.base.BaseContainer;
@@ -21,7 +20,6 @@ package {
   import com.minimalui.controls.Button;
   import com.minimalui.factories.XMLFactory;
   import com.minimalui.factories.FullXMLFactory;
-  import com.minimalui.factories.handlers.ToolTipsHandler;
 
   public class Main extends Application {
     [Embed(source="../res/fontawesome-webfont.ttf", fontName="FontAwesome",fontFamily="FontAwesome")]
@@ -37,14 +35,16 @@ package {
 // }\
 text-button {\
   background-gradient-color-1: yellow;\
+  border-width: 1;\
+  border-color: black;\
   padding-left: 10;\
   padding-right: 10;\
   padding-top: 5;\
   padding-bottom: 5;\
 }\
 .board {\
-  background-gradient-color-1: 0x222222;\
-  background-gradient-color-1: 0x444444;\
+  background-gradient-color-1: 0x666666;\
+  background-gradient-color-1: 0x888888;\
   padding: 10;\
 }\
 button {\
@@ -58,7 +58,7 @@ button {\
     }
 
     protected override function onAdd():void {
-      usecase2();
+      usecase5();
     }
 
     public function usecase5():void {
@@ -73,6 +73,11 @@ button {\
           <element id="yellowBox" width="60" height="60" background-color="yellow" />
         </hbox>
       </vbox>;
+
+      tooltips.altProto = <hbox padding="5" spacing="10" background-color="red" border-width="1" border-color="black">
+        <element width="20" height="20" background-color="yellow" />
+        <label id="alt" />
+        </hbox>;
 
       screenManager.displayScreen(uifactory.decode(xml, this));
     }

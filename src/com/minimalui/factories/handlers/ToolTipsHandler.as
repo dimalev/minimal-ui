@@ -1,6 +1,6 @@
 package com.minimalui.factories.handlers {
   import com.minimalui.base.Element;
-  import com.minimalui.hatchery.ToolTips;
+  import com.minimalui.containers.ToolTips;
   import com.minimalui.factories.IXMLAttributeHandler;
 
   public class ToolTipsHandler implements IXMLAttributeHandler {

@@ -1,4 +1,4 @@
-package com.minimalui.hatchery {
+package com.minimalui.containers {
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Element;
   import com.minimalui.controls.Label;
@@ -11,6 +11,12 @@ package com.minimalui.hatchery {
   public class ToolTips extends BaseContainer {
     protected var mDict:Dictionary = new Dictionary();
     protected var mAlts:Dictionary = new Dictionary();
+
+    protected var mAltProto:XML =
+      <label padding="5" padding-bottom="3" padding-top="3" id="alt" background-color="0xaaaa66"
+      border-width="1" border-color="0x00" />;
+
+    public function set altProto(proto:XML):void { mAltProto = proto; }
 
     public function ToolTips(cssorid:String = null, id:String = null) {
       super("percent-width: 100; percent-height: 100; " + cssorid, id);
@@ -53,8 +59,12 @@ package com.minimalui.hatchery {
     }
 
     private function buildAlt(alt:String):Element {
-      return new Label(alt, "padding-left:5; padding-right:5; padding-top:2; \
-padding-bottom:2; background-color: 0xaaaa66; border-width: 1; border-color: 0x00");
+      var image:Element = layoutManager.uifactory.decode(mAltProto);
+      var target:Element;
+      if(image is BaseContainer) target = (image as BaseContainer).getById("alt");
+      else target = image;
+      if(target) target.setStyle("text", alt);
+      return image;
     }
   }
 }

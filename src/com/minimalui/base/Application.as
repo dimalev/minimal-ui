@@ -3,7 +3,7 @@ package com.minimalui.base {
   import flash.display.MovieClip;
   import flash.events.Event;
 
-  import com.minimalui.hatchery.ToolTips;
+  import com.minimalui.containers.ToolTips;
   import com.minimalui.factories.XMLFactory;
   import com.minimalui.factories.handlers.ToolTipsHandler;
 

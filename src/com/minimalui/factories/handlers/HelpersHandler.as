@@ -14,7 +14,7 @@ package com.minimalui.factories.handlers {
       }
       if(name == "id") {
         current.id = value;
-        if(host.hasOwnProperty(value))
+        if(host && host.hasOwnProperty(value))
           host[value] = current;
         return true;
       }

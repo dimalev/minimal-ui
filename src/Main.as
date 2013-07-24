@@ -58,7 +58,8 @@ button {\
     }
 
     protected override function onAdd():void {
-      usecase5();
+        trace("hello");
+      usecase1();
     }
 
     public function usecase5():void {
@@ -186,7 +187,7 @@ vbox {\
   spacing:5;\
 }\
 ");
-      var xml:XML = <hbox id="main-hbox" valign="middle" font-size="14">
+      var xml:XML = <hbox id="main-hbox" valign="middle" font-size="14" spacing="10">
         <vbox margin-right="20" id="vbox-left">
           <label text="Game" id="label-Game" />
           <text-button text="Play" id="playBtn" width="120" spacing="5" click="say1" />
@@ -200,9 +201,9 @@ vbox {\
           </button>
           <input holder="Enter something" percent-width="100" height="25" id="somethingInp" />
         </vbox>
-        <scrollControlBase height="50">
+        <scrollControlBase height="100">
         <vbox id="vbox-right">
-          <label text="Settings" id="label-settings" />
+          <label text="Use scroll" id="label-settings" />
           <button id="imgBtn" border-width="1" padding="3" click="say3" >
             <image src="http://images.wikia.com/dungeonkeeper/images/0/01/Dark_Angel-icon.png" />
           </button>
@@ -214,6 +215,12 @@ vbox {\
           </vbox>
         </vbox>
         </scrollControlBase>
+        <vbox>
+          <checkbox text="1" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
+          <checkbox text="2" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
+          <checkbox text="3" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
+          <checkbox text="4" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
+        </vbox>
       </hbox>;
       var e:HBox = uifactory.decode(xml, this) as HBox;
       screenManager.displayScreen(e);

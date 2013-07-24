@@ -1,11 +1,11 @@
 package com.minimalui.containers {
   import flash.display.DisplayObject;
+  import flash.display.Sprite;
   import flash.geom.Rectangle;
   import flash.events.MouseEvent;
 
   import com.minimalui.base.BaseContainer;
   import com.minimalui.base.Element;
-  import com.minimalui.decorators.Background;
 
   public class ScrollControlBase extends BaseContainer {
     public static const SCROLL_X:String = "scroll-x";
@@ -17,9 +17,10 @@ package com.minimalui.containers {
     public function ScrollControlBase(idorcss:String = null, css:String = null) {
       super(idorcss, css);
       setStyle(Element.SIZING, SIZING_STRICT);
-      setStyle(Background.COLOR, 0xff);
-      setStyle(Background.TRANSPARENCY, 0);
       this.addEventListener(MouseEvent.MOUSE_WHEEL, onWheel);
+      super.addChild(hitArea = new Sprite);
+      hitArea.visible = false;
+      hitArea.mouseEnabled = false;
     }
 
     protected function onWheel(me:MouseEvent):void {
@@ -50,7 +51,10 @@ package com.minimalui.containers {
     }
 
     protected override function coreLayout():void {
-      trace(width + " " + measuredWidth + " " + realWidth);
+      hitArea.graphics.clear();
+      hitArea.graphics.beginFill(0xff);
+      hitArea.graphics.drawRect(0, 0, mLayoutWidth, mLayoutHeight);
+      hitArea.graphics.endFill();
       mViewPort.height = mLayoutHeight;
       mViewPort.width = mLayoutWidth;
       mViewPort.x = style.getNumber(SCROLL_X);

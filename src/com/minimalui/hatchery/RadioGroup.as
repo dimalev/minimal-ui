@@ -21,6 +21,7 @@ package com.minimalui.hatchery {
 
     public function push(cb:CheckboxBase):void {
       cb.addEventListener(MEvent.BUTTON_CLICK, onClick);
+      cb.isTurnOffableByMouse = false;
       mCheckBoxes.push(cb);
       if(cb.checked) {
         if(mChecked) mChecked.checked = false;

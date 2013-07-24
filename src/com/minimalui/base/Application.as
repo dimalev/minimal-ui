@@ -2,6 +2,7 @@ package com.minimalui.base {
   import flash.display.DisplayObject;
   import flash.display.MovieClip;
   import flash.events.Event;
+  import flash.utils.describeType;
 
   import com.minimalui.containers.ToolTips;
   import com.minimalui.factories.XMLFactory;
@@ -90,6 +91,8 @@ package com.minimalui.base {
       if(mToolTips) mUIFactory.addAttributeHandler(new ToolTipsHandler(mToolTips));
       // Screen manager
       mScreenManager = getScreenManager();
+      // Styles and interface
+      corePlugStylesAndInterface();
       // Fake stage to layout elements
       super.addChild(mStage = new BaseContainer("align:center; valign:middle"));
       mStage.width = stage.stageWidth;
@@ -101,6 +104,26 @@ package com.minimalui.base {
       addChild(mToolTips);
 
       onAdd();
+    }
+
+    private function corePlugStylesAndInterface():void {
+      var td:XML = describeType(this);
+      for each(var v:XML in td.variable) {
+        var CSS:XML = v.metadata.(@name == "CSS")[0];
+        var Interface:XML = v.metadata.(@name == "Interface")[0];
+
+        if(CSS) {
+          // TODO: filter by screen size, dpi of other parameters
+          // For example: [CSS(min-w=800, min-h=600)] and [CSS(max-w=800, max-h=600)] can split interface for small
+          // screens and big ones
+          uifactory.setCSS(String(new this[v.@name]()));
+        }
+
+        if(Interface) {
+          // TODO: filter by screen size, dpi of other parameters
+          screenManager.addViews(uifactory.decode(new XML(new this[v.@name]()), this) as BaseContainer);
+        }
+      }
     }
 
     private function onResizeCore(e:Event):void {

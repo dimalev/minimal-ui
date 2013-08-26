@@ -19,6 +19,7 @@ package com.minimalui.factories.handlers {
         if(current is Image) {
           if(mSource.has(value))
             (current as Image).content = mSource.retrieve(value);
+          else trace("[WARNING] Static image " + name + " not found!");
         } else trace("[WARNING] 'static-src' is specified for not-image element!");
       }
       return false;

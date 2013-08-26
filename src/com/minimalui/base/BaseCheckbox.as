@@ -8,7 +8,7 @@ package com.minimalui.base {
   import com.minimalui.decorators.Background;
   import com.minimalui.decorators.Border;
 
-  public class CheckboxBase extends BaseButton {
+  public class BaseCheckbox extends BaseButton {
     protected var mIsTurnOffableByMouse:Boolean = true;
 
     public function set isTurnOffableByMouse(bb:Boolean):void { mIsTurnOffableByMouse = bb; }
@@ -21,7 +21,7 @@ package com.minimalui.base {
       setStyle("checked", bb ? "yes" : "no");
     }
 
-    public function CheckboxBase(idorcss:String = null, id:String = null) {
+    public function BaseCheckbox(idorcss:String = null, id:String = null) {
       super(idorcss, id);
     }
 

@@ -1,15 +1,13 @@
 package com.minimalui.controls {
-  import flash.events.MouseEvent;
-
   import com.minimalui.base.Element;
-  import com.minimalui.base.CheckboxBase;
+  import com.minimalui.base.BaseCheckbox;
   import com.minimalui.base.BaseContainer;
   import com.minimalui.containers.RawLayout;
   import com.minimalui.base.layout.ILayout;
   import com.minimalui.decorators.Background;
   import com.minimalui.decorators.Border;
 
-  public class Checkbox extends CheckboxBase {
+  public class Checkbox extends BaseCheckbox {
     public static const BOX_COLOR:String = "box-color";
     public static const BOX_FILL_COLOR:String = "box-fill-color";
     private var mBox:BaseContainer = new BaseContainer("width:20; height:20; border-width:1; border-color:0xff0000;\

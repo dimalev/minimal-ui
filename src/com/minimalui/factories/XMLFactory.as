@@ -117,8 +117,6 @@ package com.minimalui.factories {
         }
       }
 
-      // trace("rawCSS: " + rawCSS);
-
       for each(d in dd) el.addDecorator(d.instanceFor(el));
 
       el.setStyles(rawCSS);

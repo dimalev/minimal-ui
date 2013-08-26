@@ -1,6 +1,5 @@
 package com.minimalui.factories {
   import com.minimalui.factories.handlers.CallbackHandler;
-  import com.minimalui.factories.handlers.ButtonHandler;
   import com.minimalui.factories.handlers.RadioGroupHandler;
   import com.minimalui.factories.transformers.ColorTransformer;
   import com.minimalui.factories.transformers.RulerTransformer;
@@ -12,7 +11,7 @@ package com.minimalui.factories {
   import com.minimalui.controls.Input;
   import com.minimalui.containers.VBox;
   import com.minimalui.containers.HBox;
-  import com.minimalui.containers.ScrollControlBase;
+  import com.minimalui.containers.BaseScrollControl;
   import com.minimalui.hatchery.Image;
   import com.minimalui.decorators.Background;
   import com.minimalui.decorators.GradientBackground;
@@ -26,7 +25,6 @@ package com.minimalui.factories {
       addDecorator(GradientBackground.descriptor);
 
       addAttributeHandler(new CallbackHandler);
-      addAttributeHandler(new ButtonHandler);
       addAttributeHandler(new RadioGroupHandler);
 
       addAttributeTransformer(new ColorTransformer);
@@ -39,7 +37,7 @@ package com.minimalui.factories {
       addTagHandler("text-button", Button);
       addTagHandler("button", BaseButton);
       addTagHandler("input", Input);
-      addTagHandler("scrollControlBase", ScrollControlBase);
+      addTagHandler("scroll-control", BaseScrollControl);
       addTagHandler("checkbox", Checkbox);
       addTagHandler("image", Image);
     }

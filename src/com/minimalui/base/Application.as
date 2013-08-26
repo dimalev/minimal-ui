@@ -1,8 +1,12 @@
 package com.minimalui.base {
   import flash.display.DisplayObject;
   import flash.display.MovieClip;
+  import flash.display.StageScaleMode;
+  import flash.display.StageAlign;
   import flash.events.Event;
   import flash.utils.describeType;
+  import flash.ui.Multitouch;
+  import flash.ui.MultitouchInputMode;
 
   import com.minimalui.containers.ToolTips;
   import com.minimalui.factories.XMLFactory;
@@ -11,10 +15,6 @@ package com.minimalui.base {
   /**
    *  Takes care of installing all the required infrastructure of minimal ui ecosystem. you just have to override
    *  protected void onAdd function.
-   *
-   *  TODO: add uifactory, by default it will be XMLFactory. you can overload it's creation.
-   *  TODO: add default screen manager. same as factory. maybe parameterize it with XML files of screens, or Classes
-   *        implementing screens.
    */
   public class Application extends MovieClip {
 
@@ -24,6 +24,7 @@ package com.minimalui.base {
 
     protected var mUIFactory:XMLFactory;
     protected var mScreenManager:ScreenManager;
+    protected var mModalLayer:BaseContainer;
     protected var mToolTips:ToolTips;
 
     public override function get numChildren():int { return mStage.numChildren; }
@@ -50,6 +51,17 @@ package com.minimalui.base {
     public final function get screenManager():ScreenManager { return mScreenManager; }
 
     public final function get tooltips():ToolTips { return mToolTips; }
+
+    public final function showModal(el:Element):void {
+      mModalLayer.addChild(el);
+      el.addEventListener(Event.CLOSE, onModalClose);
+      mScreenManager.mouseChildren = mScreenManager.mouseEnabled = false;
+    }
+
+    private function onModalClose(e:Event):void {
+      mModalLayer.removeChild((e.target) as Element);
+      mScreenManager.mouseChildren = mScreenManager.mouseEnabled = mModalLayer.numChildren == 0;
+    }
 
     /**
      * Entry point for your application.
@@ -78,6 +90,9 @@ package com.minimalui.base {
     private function onCoreDeactivate(e:Event):void { onDeactivate(); }
 
     private function onCoreAdd(e:Event):void {
+      Multitouch.inputMode=MultitouchInputMode.TOUCH_POINT;
+      stage.align = StageAlign.TOP_LEFT;
+      stage.scaleMode = StageScaleMode.NO_SCALE;
       // Listeners
       removeEventListener(Event.ADDED_TO_STAGE, onAdd);
       addEventListener(Event.ACTIVATE, onCoreActivate);
@@ -91,6 +106,8 @@ package com.minimalui.base {
       if(mToolTips) mUIFactory.addAttributeHandler(new ToolTipsHandler(mToolTips));
       // Screen manager
       mScreenManager = getScreenManager();
+      // Modal layer
+      mModalLayer = new BaseContainer("percent-width:100; percent-height:100; align:center; valign:middle");
       // Styles and interface
       corePlugStylesAndInterface();
       // Fake stage to layout elements
@@ -101,6 +118,7 @@ package com.minimalui.base {
 
       // initiating main components
       addChild(mScreenManager);
+      addChild(mModalLayer);
       addChild(mToolTips);
 
       onAdd();
@@ -108,17 +126,19 @@ package com.minimalui.base {
 
     private function corePlugStylesAndInterface():void {
       var td:XML = describeType(this);
-      for each(var v:XML in td.variable) {
+      var v:XML;
+      for each(v in td.variable) {
         var CSS:XML = v.metadata.(@name == "CSS")[0];
-        var Interface:XML = v.metadata.(@name == "Interface")[0];
-
         if(CSS) {
           // TODO: filter by screen size, dpi of other parameters
           // For example: [CSS(min-w=800, min-h=600)] and [CSS(max-w=800, max-h=600)] can split interface for small
           // screens and big ones
           uifactory.setCSS(String(new this[v.@name]()));
         }
+      }
 
+      for each(v in td.variable) {
+        var Interface:XML = v.metadata.(@name == "Interface")[0];
         if(Interface) {
           // TODO: filter by screen size, dpi of other parameters
           screenManager.addViews(uifactory.decode(new XML(new this[v.@name]()), this) as BaseContainer);

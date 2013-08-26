@@ -11,14 +11,15 @@ package com.minimalui.decorators {
     public static const LEFT_COLOR:String = "background-gradient-color-1";
     public static const RIGHT_COLOR:String = "background-gradient-color-2";
     public static const ROTATION:String = "background-gradient-rotation";
+    public static const RADIUS:String = "background-gradient-radius";
     private static const sDD:DecoratorDescriptor = new DecoratorDescriptor("background-gradient", GradientBackground,
-                         Vector.<String>([LEFT_COLOR, RIGHT_COLOR, ROTATION]));
+                                                       Vector.<String>([LEFT_COLOR, RIGHT_COLOR, ROTATION,RADIUS]));
 
     public static function get descriptor():DecoratorDescriptor { return sDD; }
 
     public function GradientBackground(trg:Element) {
       super(trg);
-      trg.style.addChange(LEFT_COLOR, RIGHT_COLOR, ROTATION);
+      trg.style.addChange(LEFT_COLOR, RIGHT_COLOR, ROTATION, RADIUS);
     }
 
     public override function onBeforeRedraw():void {
@@ -31,7 +32,9 @@ package com.minimalui.decorators {
       var a:Number = (target.style.hasValue(ROTATION) ? target.style.getNumber(ROTATION) : 90) / 180 * Math.PI;
       m.createGradientBox(target.width, target.height, a);
       target.graphics.beginGradientFill(GradientType.LINEAR, [c1, c2], [1,1], [0, 255], m);
-      target.graphics.drawRect(0, 0, target.width, target.height);
+      if(target.style.hasValue(RADIUS))
+        target.graphics.drawRoundRect(0, 0, target.width, target.height, target.style.getNumber(RADIUS));
+      else target.graphics.drawRect(0, 0, target.width, target.height);
       target.graphics.endFill();
     }
   }

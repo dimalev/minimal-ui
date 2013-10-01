@@ -10,7 +10,7 @@ package com.minimalui.factories.handlers {
     public function handle(name:String, value:String, current:Element, host:Object):Boolean {
       if(name == Image.SRC) {
         if(current is Image)
-          (((current as Image).content = new Loader()) as Loader).load(new URLRequest(attribute));
+          (((current as Image).content = new Loader()) as Loader).load(new URLRequest(value));
         else trace("[WARNING] 'src' is specified for not-image element!");
         return true;
       }

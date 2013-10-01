@@ -1,6 +1,7 @@
 package com.minimalui.factories {
   import com.minimalui.factories.handlers.CallbackHandler;
   import com.minimalui.factories.handlers.RadioGroupHandler;
+  import com.minimalui.factories.handlers.ImageHandler;
   import com.minimalui.factories.transformers.ColorTransformer;
   import com.minimalui.factories.transformers.RulerTransformer;
   import com.minimalui.base.BaseButton;
@@ -26,6 +27,7 @@ package com.minimalui.factories {
 
       addAttributeHandler(new CallbackHandler);
       addAttributeHandler(new RadioGroupHandler);
+      addAttributeHandler(new ImageHandler);
 
       addAttributeTransformer(new ColorTransformer);
       addAttributeTransformer(new RulerTransformer);

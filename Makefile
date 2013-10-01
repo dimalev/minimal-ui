@@ -29,7 +29,7 @@ TEST_APP:=test.swf
 TEST_WIDTH:=1024
 TEST_HEIGHT:=800
 
-DEBUG:=true
+DEBUG:=false
 
 .PHONY: clean
 
@@ -43,6 +43,7 @@ test: ${DEST_DIR}/${TEST_APP}
 
 ${DEST_DIR}/${DEST_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
 	${MXMLC} -source-path ${SRC_DIR} \
+           --keep-as3-metadata=Interface,CSS,Resource,Part \
            --output ${DEST_DIR}/${DEST_NAME} \
            --default-size ${APP_WIDTH} ${APP_HEIGHT} \
            --default-background-color ${BG_COLOR} \
@@ -51,6 +52,7 @@ ${DEST_DIR}/${DEST_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
 
 ${DEST_DIR}/${DEST_LIB_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
 	${COMPC} -source-path ${SRC_DIR} \
+           --keep-as3-metadata=Interface,CSS,Resource,Part \
            -include-sources ${SRC_DIR}/com/minimalui/ \
            --output ${DEST_DIR}/${DEST_LIB_NAME}
 

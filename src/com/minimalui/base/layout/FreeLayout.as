@@ -78,7 +78,8 @@ package com.minimalui.base.layout {
       var els:Vector.<DisplayObject> = target.visibleChildren;
       var res:Vector.<ElementMetrix> = new Vector.<ElementMetrix>;
       var o:DisplayObject;
-      for each(o in els) res.push(new ElementMetrix(o));
+      for each(o in els)
+        if(o.visible) res.push(new ElementMetrix(o));
       return res;
     }
   }

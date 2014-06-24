@@ -87,7 +87,10 @@ package com.minimalui.containers {
         if(isNaN(em.pw))
           computedColumnWidth = Math.max(computedColumnWidth, (isNaN(em.w) ? em.mw : em.w) + pp.l + pp.r);
 
-        if(isNaN(em.ph)) computedColumnHeight -= (isNaN(em.h) ? em.mh : em.h);
+        if(isNaN(em.ph)) {
+          if(mDebug) trace("value of height: " + em.rh);
+          computedColumnHeight -= (isNaN(em.rh) ? em.mh : em.rh);
+        }
         computedColumnHeight -= pp.t;
 
         lpt = pp.b;
@@ -225,7 +228,8 @@ package com.minimalui.containers {
       var res:Vector.<ElementMetrix> = new Vector.<ElementMetrix>;
       var o:DisplayObject;
       var C:Class = mIsVertical ? RotatedElementMetrix : ElementMetrix;
-      for each(o in els) res.push(new C(o));
+      for each(o in els)
+        if(o.visible) res.push(new C(o));
       return res;
     }
  }

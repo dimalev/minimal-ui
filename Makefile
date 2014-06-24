@@ -22,14 +22,12 @@ TEST_LIBS:=lib/flexunit-uilistener.swc:lib/flexunit4.swc
 TEST_DIR:=test
 
 TEST_APP_NAME:=TestRunner.mxml
-TEST_RUNNER_SRC:=${TEST_DIR}/TestSuite.as
-TEST_CASES_SRC:=${TEST_DIR}/cases/*.as
 TEST_APP:=test.swf
 
 TEST_WIDTH:=1024
 TEST_HEIGHT:=800
 
-DEBUG:=false
+DEBUG:=true
 
 .PHONY: clean
 
@@ -41,7 +39,7 @@ lib: ${DEST_DIR}/${DEST_LIB_NAME}
 
 test: ${DEST_DIR}/${TEST_APP}
 
-${DEST_DIR}/${DEST_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
+${DEST_DIR}/${DEST_NAME}: $(shell find $(SRC_DIR) -iname *.as) Makefile
 	${MXMLC} -source-path ${SRC_DIR} \
            --keep-as3-metadata=Interface,CSS,Resource,Part \
            --output ${DEST_DIR}/${DEST_NAME} \
@@ -50,13 +48,13 @@ ${DEST_DIR}/${DEST_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
            --debug=${DEBUG} \
            ${SRC_DIR}/${APP_NAME}
 
-${DEST_DIR}/${DEST_LIB_NAME}: ${SRC_DIR}/${APP_NAME} Makefile
+${DEST_DIR}/${DEST_LIB_NAME}: $(shell find $(SRC_DIR) -iname *.as) Makefile
 	${COMPC} -source-path ${SRC_DIR} \
            --keep-as3-metadata=Interface,CSS,Resource,Part \
            -include-sources ${SRC_DIR}/com/minimalui/ \
            --output ${DEST_DIR}/${DEST_LIB_NAME}
 
-${DEST_DIR}/${TEST_APP}: ${TEST_DIR}/${TEST_APP_NAME} ${TEST_RUNNER_SRC} ${TEST_CASES_SRC}
+${DEST_DIR}/${TEST_APP}: $(shell find $(SRC_DIR) $(TEST_DIR) -iname *.as)
 	${MXMLC} -source-path ${SRC_DIR} ${CLASSPATH_DIR} \
            --output ${DEST_DIR}/${TEST_APP} \
            --default-size ${TEST_WIDTH} ${TEST_HEIGHT} \

@@ -43,7 +43,7 @@ package com.minimalui.containers {
       mTouchY = te.stageY;
       var maxDelta:Number = mChild.height;
       var delta:Number = style.getNumber(SCROLL_Y);
-      delta = Math.min(maxDelta - height, Math.max(delta - md, 0));
+      delta = Math.max(Math.min(maxDelta - height, delta - md), 0);
       setStyle(SCROLL_Y, delta);
       invalidateSize();
       mTouchY = te.stageY;
@@ -52,7 +52,7 @@ package com.minimalui.containers {
     protected function onWheel(me:MouseEvent):void {
       var maxDelta:Number = mChild.height;
       var delta:Number = style.getNumber(SCROLL_Y);
-      delta = Math.min(maxDelta - height, Math.max(delta - me.delta * 5, 0));
+      delta = Math.max(Math.min(maxDelta - height, delta - me.delta * 5), 0);
       setStyle(SCROLL_Y, delta);
       invalidateSize();
     }
@@ -89,7 +89,7 @@ package com.minimalui.containers {
       mChild.layout(w, h);
       var maxDelta:Number = mChild.height;
       var delta:Number = style.getNumber(SCROLL_Y);
-      delta = Math.min(maxDelta - height, Math.max(delta, 0));
+      delta = Math.max(Math.min(maxDelta - height, delta), 0);
       setStyle(SCROLL_Y, delta);
       setChanged();
     }

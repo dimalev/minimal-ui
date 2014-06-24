@@ -10,17 +10,22 @@ package com.minimalui.base {
    * Implements basic Button.
    */
   public class BaseButton extends BaseContainer {
-    public static const DISABLED:String = "disabled";
+    public static const NS_HOVER:String = "hover";
+    public static const NS_MOUSE_DOWN:String = "mouse-down";
+    public static const NS_DISABLED:String = "disabled";
 
     private var mCallback:Function;
 
     private var mIsMouseDown:Boolean = false;
     private var mIsMouseOver:Boolean = false;
 
-    public function set disabled(bb:Boolean):void { setStyle(DISABLED, bb ? "true" : "false") }
+    public function set disabled(bb:Boolean):void {
+      style.namespace = bb ? NS_DISABLED : (isMouseOver ? NS_HOVER : Style.DEFAULT_NAMESPACE);
+      useHandCursor = buttonMode = !bb;
+    }
 
     public function get disabled():Boolean {
-      return style.hasValue(DISABLED) ? getStyle(DISABLED) == "true" : false;
+      return style.namespace == NS_DISABLED;
     }
 
     /**
@@ -57,14 +62,6 @@ package com.minimalui.base {
       addMouseListeners();
     }
 
-    protected override function coreCommitProperties():void {
-      if(hasChanged(Vector.<String>([DISABLED]))) {
-        useHandCursor = buttonMode = !(getStyle(DISABLED) == "true");
-        setChanged();
-      }
-      super.coreCommitProperties();
-    }
-
     protected function onMouseMove():void { "Implement custom mouse move handling"; }
     protected function onMouseOver():void { "Implement custom mouse over handling"; }
     protected function onMouseOut():void { "Implement custom mouse out handling"; }
@@ -75,7 +72,7 @@ package com.minimalui.base {
     private function coreOnClick(me:MouseEvent):void {
       if(disabled) return;
       onMouseClick();
-      if(mCallback !== null) mCallback();
+      if(mCallback !== null) mCallback(this);
       dispatchEvent(new MEvent(MEvent.BUTTON_CLICK));
       setChanged();
     }
@@ -93,6 +90,10 @@ package com.minimalui.base {
     }
 
     private function onCoreMouseOver(me:MouseEvent):void {
+      if(!disabled) {
+        if(mIsMouseDown) style.namespace = NS_MOUSE_DOWN;
+        else style.namespace = NS_HOVER;
+      }
       addEventListener(MouseEvent.MOUSE_MOVE, onCoreMouseMove);
       mIsMouseOver = true;
       onMouseOver();
@@ -100,6 +101,7 @@ package com.minimalui.base {
     }
 
     private function onCoreMouseOut(me:MouseEvent):void {
+      if(!disabled) style.namespace = Style.DEFAULT_NAMESPACE;
       removeEventListener(MouseEvent.MOUSE_MOVE, onCoreMouseMove);
       mIsMouseOver = false;
       onMouseOut();
@@ -108,6 +110,7 @@ package com.minimalui.base {
 
     private function onCoreMouseDown(me:MouseEvent):void {
       mIsMouseDown = true;
+      if(!disabled) style.namespace = NS_MOUSE_DOWN;
       stage.addEventListener(MouseEvent.MOUSE_UP, onCoreMouseUp);
       onMouseDown();
       setChanged();
@@ -115,6 +118,10 @@ package com.minimalui.base {
 
     private function onCoreMouseUp(me:MouseEvent):void {
       mIsMouseDown = false;
+      if(!disabled) {
+        if(mIsMouseOver) style.namespace = NS_HOVER;
+        else style.namespace = Style.DEFAULT_NAMESPACE;
+      }
       onMouseUp();
       setChanged();
     }

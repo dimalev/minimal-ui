@@ -2,18 +2,45 @@ package com.minimalui.base {
   import flash.events.EventDispatcher;
   import flash.events.Event;
 
+  /**
+   * Holds and manages styling values.
+   */
   public class Style extends EventDispatcher {
+    public static const DEFAULT_NAMESPACE:String = "default";
+
     private var mFields:Vector.<String> = new Vector.<String>;
+    private var mFieldsByNamespace:Object = new Object;
     private var mChangedFields:Vector.<String> = new Vector.<String>;
     private var mInheritableFields:Vector.<String> = new Vector.<String>;
     private var mData:Object = new Object;
+    private var mDataByNamespace:Object = new Object;
     private var mParent:Style;
     private var mMutable:Boolean = true;
     private var mHasNewParent:Boolean = false;
+    private var mNameSpace:String = DEFAULT_NAMESPACE;
 
     private var mTarget:Element;
     private var mInvalidateSizeList:Vector.<String> = new Vector.<String>();
     private var mChangeList:Vector.<String> = new Vector.<String>();
+
+    public function get namespace():String { return mNameSpace; }
+    public function set namespace(ns:String):void {
+      if(mNameSpace == ns) return;
+      var nsf:String;
+      var fields:Vector.<String> = mFieldsByNamespace[DEFAULT_NAMESPACE].slice();
+      if(DEFAULT_NAMESPACE != ns && mFieldsByNamespace.hasOwnProperty(ns)) {
+        var nsfields:Vector.<String> = mFieldsByNamespace[ns];
+        for each(nsf in nsfields)
+          if(fields.indexOf(nsf) <= 0) fields.push(nsf);
+      }
+      var oldFields:Vector.<String> = new Vector.<String>;
+      for each(nsf in mFields) if(fields.indexOf(nsf) < 0) oldFields.push(nsf);
+      for each(nsf in oldFields) delValue(nsf);
+      setCurrentValues(mDataByNamespace[DEFAULT_NAMESPACE]);
+      if(DEFAULT_NAMESPACE != ns && mFieldsByNamespace.hasOwnProperty(ns))
+        setCurrentValues(mDataByNamespace[ns]);
+      mNameSpace = ns;
+    }
 
     public function get mutable():Boolean { return mMutable; }
     public function freeze():Style {
@@ -98,45 +125,35 @@ package com.minimalui.base {
       return hasOwnValue(name) ? mData[name] : (isInheritable(name) ? mParent.getValue2(name) : null);
     }
 
-    protected function getValue2(name:String):Object {
-      return hasOwnValue(name) ? mData[name] : mParent.getValue2(name);
-    }
-
     public function getString(name:String):String { return hasValue(name) ? String(getValue(name)) : ""; }
     public function getNumber(name:String):Number { return hasValue(name) ? Number(getValue(name)) : 0; }
 
-    public function setValue(name:String, value:Object):void {
+    public function setValue(nsname:String, value:Object):void {
       if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
-      if(!hasOwnValue(name)) addValue(name);
-      else if(mData[name] == value) return;
-      mData[name] = value;
-      addChanged(name);
-      mTarget.setDirty();
-      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
-      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
+      var parts:Array = nsname.split(":");
+      var name:String = parts[0];
+      var ns:String = parts.length > 1 ? parts[1] : DEFAULT_NAMESPACE;
+      if(namespace == ns || !mFieldsByNamespace.hasOwnProperty(namespace) || mFieldsByNamespace[namespace].indexOf(name) < 0)
+        setCurrentValue(name, value);
+      setNSValue(ns, name, value);
     }
 
     public function hasValue(name:String):Boolean {
       return hasOwnValue(name) || (isInheritable(name) && mParent && mParent.hasValue2(name));
     }
 
-    protected function hasValue2(name:String):Boolean {
-      return hasOwnValue(name) || (mParent && mParent.hasValue2(name));
-    }
-
     public function hasOwnValue(name:String):Boolean {
       return mFields.indexOf(name) >= 0;
     }
 
-    public function delValue(name:String):Boolean {
-      if(!hasOwnValue(name)) return false;
-      delete mData[name];
-      mFields.splice(mFields.indexOf(name), 1);
-      addChanged(name);
-      mTarget.setDirty();
-      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
-      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
-      return true;
+    public function delValue(nsname:String):Boolean {
+      if(!mMutable) throw new Error("Cannot change " + name +". Style is frozen!");
+      var parts:Array = nsname.split(":");
+      var name:String = parts[0];
+      var ns:String = parts.length > 1 ? parts[1] : namespace;
+      delNSValue(ns, name);
+      if(namespace == ns) return delCurrentValue(name);
+      return false;
     }
 
     public function get changed():Vector.<String> {
@@ -170,8 +187,55 @@ package com.minimalui.base {
       mHasNewParent = false;
     }
 
+    protected function getValue2(name:String):Object {
+      return hasOwnValue(name) ? mData[name] : mParent.getValue2(name);
+    }
+
+    protected function setCurrentValues(fields:Object):void {
+      for(var name:String in fields) setCurrentValue(name, fields[name]);
+    }
+
+    protected function setCurrentValue(name:String, value:Object):void {
+      if(!hasOwnValue(name)) addValue(name);
+      else if(mData[name] == value) return;
+      mData[name] = value;
+      addChanged(name);
+      mTarget.setDirty();
+      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
+      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
+    }
+
+    protected function setNSValue(ns:String, name:String, value:Object):void {
+      if(!mFieldsByNamespace.hasOwnProperty(ns)) mFieldsByNamespace[ns] = new Vector.<String>;
+      if(mFieldsByNamespace[ns].indexOf(name) < 0) mFieldsByNamespace[ns].push(name);
+      if(!mDataByNamespace.hasOwnProperty(ns)) mDataByNamespace[ns] = {};
+      mDataByNamespace[ns][name] = value;
+    }
+
+    protected function hasValue2(name:String):Boolean {
+      return hasOwnValue(name) || (mParent && mParent.hasValue2(name));
+    }
+
     protected function addValue(name:String):void {
       mFields.push(name);
+    }
+
+    protected function delCurrentValue(name:String):Boolean {
+      if(!hasOwnValue(name)) return false;
+      delete mData[name];
+      mFields.splice(mFields.indexOf(name), 1);
+      addChanged(name);
+      mTarget.setDirty();
+      if(mInvalidateSizeList.indexOf(name) >= 0) mTarget.invalidateSize();
+      if(mChangeList.indexOf(name) >= 0) mTarget.setChanged();
+      return true;
+    }
+
+    protected function delNSValue(ns:String, name:String):void {
+      if(!mFieldsByNamespace.hasOwnProperty(ns)) return;
+      if(mFieldsByNamespace[ns].indexOf(name) < 0) return;
+      delete mDataByNamespace[ns][name];
+      mFieldsByNamespace[ns].splice(mFieldsByNamespace[ns].indexOf(name), 1);
     }
 
     protected function addChanged(name:String):void {

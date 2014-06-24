@@ -54,16 +54,16 @@ package com.minimalui.controls {
     protected override function coreCommitProperties():void {
       if(hasChanged(Vector.<String>([FONT_SIZE, FONT_FAMILY, FONT_COLOR, FONT_WEIGHT, TEXT_ALIGN])))
         mIsFormatChanged = true;
-      if(mIsFormatChanged || hasChanged(Vector.<String>([TEXT_CONTENT]))) invalidateSize();
+      if(mIsFormatChanged || hasChanged(Vector.<String>([TEXT_CONTENT]))) {
+        invalidateSize();
+        // mMeasuredWidth = NaN;
+      }
     }
 
     protected override function coreMeasure():void {
       changeFormat();
-      if(!isNaN(mMeasuredWidth)) changeBlock(mMeasuredWidth);
-      else {
-        changeBlock(4000);
-        mMeasuredWidth = mRealWidth;
-      }
+      changeBlock(4000);
+      if(isNaN(mMeasuredWidth)) mMeasuredWidth = mRealWidth;
       if(isNaN(mMeasuredHeight)) mMeasuredHeight = mRealHeight;
     }
 
@@ -129,6 +129,11 @@ package com.minimalui.controls {
     }
 
     private function changeBlock(w:Number):void {
+      if(w <= 0) {
+        trace("[Warning] width of Label should be positive integer. given: " + w);
+        trace("[Warning] width is set to 4000");
+        w = 4000;
+      }
       var textElement:TextElement = new TextElement(style.getString(TEXT_CONTENT), mFormat);
       if(w < 4000 && getStyle(TEXT_ALIGN) == "justify") {
         var tj:TextJustifier = TextJustifier.getJustifierForLocale("en");
@@ -141,11 +146,12 @@ package com.minimalui.controls {
       mRealTextHeight = 0;
 
       mText.splice(0, mText.length);
-      var tl:TextLine = null;
-      while(tl = mTextBlock.createTextLine(tl, w)) {
+      var tl:TextLine = mTextBlock.createTextLine(null, w);
+      while(tl) {
         mText.push(tl);
         mRealTextWidth = Math.max(mRealTextWidth, tl.textWidth);
         mRealTextHeight += tl.height+tl.descent;
+        tl = mTextBlock.createTextLine(tl, w);
       }
 
       mRealWidth = mRealTextWidth + style.getNumber(Element.PADDING_LEFT) + style.getNumber(Element.PADDING_RIGHT);

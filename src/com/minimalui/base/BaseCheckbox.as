@@ -9,9 +9,9 @@ package com.minimalui.base {
   import com.minimalui.decorators.Border;
 
   public class BaseCheckbox extends BaseButton {
-    protected var mIsTurnOffableByMouse:Boolean = true;
+    protected var mToggleOnClick:Boolean = true;
 
-    public function set isTurnOffableByMouse(bb:Boolean):void { mIsTurnOffableByMouse = bb; }
+    public function set toggleOnClick(bb:Boolean):void { mToggleOnClick = bb; }
 
     public final function get checked():Boolean {
       return style.hasValue("checked") ? getStyle("checked") == "yes" : false;
@@ -26,7 +26,7 @@ package com.minimalui.base {
     }
 
     protected override function onMouseClick():void {
-      if(checked && !mIsTurnOffableByMouse) return;
+      if(checked && !mToggleOnClick) return;
       checked = !checked;
     }
   }

@@ -1,4 +1,9 @@
 package com.minimalui.base {
+  /**
+   * Adds unified effects and capabilities to Element.
+   *
+   * TODO: add onRemove callback to clean the object.
+   */
   public class Decorator {
     private var mTarget:Element;
 

@@ -10,6 +10,7 @@ package com.minimalui.controls {
 
   /**
    * Implements basic Button.
+   * TODO: Add text setter for label!
    */
   public class Button extends BaseButton {
     public static const BACKGROUND_COLOR_HOVER:String = "background-color-hover";

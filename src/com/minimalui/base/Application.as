@@ -85,6 +85,15 @@ package com.minimalui.base {
 
     protected function getToolTips():ToolTips { return new ToolTips; }
 
+    /**
+     * Override this to create own main screen layout. For example you can player toolbar in the bottom of the screen,
+     * or main menu on top. But don't forget to initialize mScreenManager!
+     */
+    protected function initScreenManager():void {
+      mScreenManager = getScreenManager();
+      addChild(mScreenManager);
+    }
+
     private function onCoreActivate(e:Event):void { onActivate(); }
 
     private function onCoreDeactivate(e:Event):void { onDeactivate(); }
@@ -101,47 +110,59 @@ package com.minimalui.base {
       mUIFactory = getXMLFactory();
       // Layout
       LayoutManager.setDefault(mLayoutManager = new LayoutManager(stage, mUIFactory));
-      // Tool tips
-      mToolTips = getToolTips();
-      if(mToolTips) mUIFactory.addAttributeHandler(new ToolTipsHandler(mToolTips));
-      // Screen manager
-      mScreenManager = getScreenManager();
-      // Modal layer
-      mModalLayer = new BaseContainer("percent-width:100; percent-height:100; align:center; valign:middle");
-      // Styles and interface
-      corePlugStylesAndInterface();
+
       // Fake stage to layout elements
       super.addChild(mStage = new BaseContainer("align:center; valign:middle"));
       mStage.width = stage.stageWidth;
       mStage.height = stage.stageHeight;
       stage.addEventListener(Event.RESIZE, onResizeCore);
 
+      // Styles
+      corePlugStyles();
+
+      // Init tool tips
+      mToolTips = getToolTips();
+      if(mToolTips) mUIFactory.addAttributeHandler(new ToolTipsHandler(mToolTips));
+
+      // Screen manager
+      initScreenManager();
+
+      // Interface
+      corePlugInterface();
+
+      // Modal layer
+      mModalLayer = new BaseContainer("percent-width:100; percent-height:100; align:center; valign:middle");
+
       // initiating main components
-      addChild(mScreenManager);
       addChild(mModalLayer);
+
+      // Plug tooltips
       addChild(mToolTips);
 
       onAdd();
     }
 
-    private function corePlugStylesAndInterface():void {
+    private function corePlugStyles():void {
       var td:XML = describeType(this);
-      var v:XML;
-      for each(v in td.variable) {
+      for each(var v:XML in td.variable) {
         var CSS:XML = v.metadata.(@name == "CSS")[0];
         if(CSS) {
           // TODO: filter by screen size, dpi of other parameters
           // For example: [CSS(min-w=800, min-h=600)] and [CSS(max-w=800, max-h=600)] can split interface for small
           // screens and big ones
-          uifactory.setCSS(String(new this[v.@name]()));
+          uifactory.cssFactory.parse(String(new this[v.@name]()));
         }
       }
+    }
 
-      for each(v in td.variable) {
+    private function corePlugInterface():void {
+      var td:XML = describeType(this);
+      for each(var v:XML in td.variable) {
         var Interface:XML = v.metadata.(@name == "Interface")[0];
         if(Interface) {
           // TODO: filter by screen size, dpi of other parameters
-          screenManager.addViews(uifactory.decode(new XML(new this[v.@name]()), this) as BaseContainer);
+          var screen:BaseContainer = uifactory.decode(new XML(new this[v.@name]()), this) as BaseContainer;
+          screenManager.addScreen(screen.id, screen);
         }
       }
     }

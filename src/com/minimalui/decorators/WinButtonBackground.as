@@ -32,7 +32,7 @@ package com.minimalui.decorators {
       var color:Number = target.style.hasValue(COLOR) ? target.style.getNumber(COLOR) : 0xaa0000;
       var borderColor:Number = target.style.hasValue(BORDER_COLOR) ? target.style.getNumber(BORDER_COLOR) : color;
       var padding:Number = 0;
-      if((target.getStyle(BaseButton.DISABLED) == "true")) {
+      if((target as BaseButton).disabled) {
         color = target.style.hasValue(DISABLED) ? target.style.getNumber(DISABLED) : 0x777777;
       } else if((target as BaseButton).isMouseOver) {
           color = target.style.hasValue(HOVER) ? target.style.getNumber(HOVER) : 0x00aa00;

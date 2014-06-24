@@ -18,6 +18,10 @@ package com.minimalui.factories.handlers {
           host[value] = current;
         return true;
       }
+      if(name == "visible") {
+				current.visible = value == "true";
+        return true;
+      }
       return false;
     }
   }

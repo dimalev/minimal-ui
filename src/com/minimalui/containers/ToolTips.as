@@ -29,13 +29,15 @@ package com.minimalui.containers {
     }
 
     public function addToolTip(trg:Element, alt:Element):void {
-      var w:Number = trg.width / 2;
+      var w:Number = trg.width;
       alt.mouseEnabled = false;
       alt.setStyle(Element.POSITION, Element.POSITION_ABSOLUTE);
       var p:Point = this.globalToLocal(trg.localToGlobal(new Point(w, 0)));
       addChild(alt);
-      var x:Number = p.x - alt.width/2;
-      var y:Number = p.y - alt.height- 5;
+      // var x:Number = p.x - alt.width/2;
+      // var y:Number = p.y - alt.height- 5;
+      var x:Number = p.x + 10;//- alt.width/2;
+      var y:Number = p.y;// - alt.height- 5;
       alt.move(x, y);
     }
 

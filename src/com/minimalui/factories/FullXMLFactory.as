@@ -2,9 +2,11 @@ package com.minimalui.factories {
   import com.minimalui.factories.handlers.CallbackHandler;
   import com.minimalui.factories.handlers.RadioGroupHandler;
   import com.minimalui.factories.handlers.ImageHandler;
+  import com.minimalui.factories.handlers.ButtonHelpersHandler;
   import com.minimalui.factories.transformers.ColorTransformer;
   import com.minimalui.factories.transformers.RulerTransformer;
   import com.minimalui.base.BaseButton;
+  import com.minimalui.base.BaseProgressBar;
   import com.minimalui.controls.Label;
   import com.minimalui.controls.TextLabel;
   import com.minimalui.controls.Button;
@@ -16,6 +18,7 @@ package com.minimalui.factories {
   import com.minimalui.hatchery.Image;
   import com.minimalui.decorators.Background;
   import com.minimalui.decorators.GradientBackground;
+  import com.minimalui.decorators.DropShadow;
   import com.minimalui.decorators.Border;
 
   public class FullXMLFactory extends XMLFactory {
@@ -24,10 +27,12 @@ package com.minimalui.factories {
       addDecorator(Border.descriptor);
       addDecorator(Background.descriptor);
       addDecorator(GradientBackground.descriptor);
+      addDecorator(DropShadow.descriptor);
 
       addAttributeHandler(new CallbackHandler);
       addAttributeHandler(new RadioGroupHandler);
       addAttributeHandler(new ImageHandler);
+      addAttributeHandler(new ButtonHelpersHandler);
 
       addAttributeTransformer(new ColorTransformer);
       addAttributeTransformer(new RulerTransformer);
@@ -42,6 +47,7 @@ package com.minimalui.factories {
       addTagHandler("scroll-control", BaseScrollControl);
       addTagHandler("checkbox", Checkbox);
       addTagHandler("image", Image);
+      addTagHandler("progress-bar", BaseProgressBar);
     }
   }
 }

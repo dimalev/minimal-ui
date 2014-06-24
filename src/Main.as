@@ -6,11 +6,6 @@ package {
 
   import com.minimalui.containers.RawLayout;
   import com.minimalui.decorators.WinButtonBackground;
-  import com.minimalui.base.Application;
-  import com.minimalui.base.ScreenManager;
-  import com.minimalui.base.BaseContainer;
-  import com.minimalui.base.Element;
-  import com.minimalui.base.LayoutManager;
   import com.minimalui.base.BaseButton;
   import com.minimalui.controls.Label;
   import com.minimalui.controls.Input;
@@ -27,12 +22,16 @@ package {
 
     protected override function getXMLFactory():XMLFactory {
       var factory:XMLFactory = new FullXMLFactory();
-      factory.setCSS("\
-// hbox {\
-//   padding: 10;\
-//   background-color: 0xffff;\
-//   align: center;\
-// }\
+      factory.cssFactory.parse("\
+text-button:hover {\
+  background-gradient-color-1: red;\
+}\
+text-button:disabled {\
+  background-gradient-color-1: gray;\
+}\
+text-button:mouse-down {\
+  background-gradient-color-1: coral;\
+}\
 text-button {\
   background-gradient-color-1: yellow;\
   border-width: 1;\
@@ -58,8 +57,15 @@ button {\
     }
 
     protected override function onAdd():void {
-        trace("hello");
+      trace("hello");
       usecase1();
+    }
+
+    public function usecase6():void {
+      var xml:XML = <vbox spacing="5" class="board">
+          <text-button text="hello" alt="say hello" />
+        </vbox>;
+      screenManager.displayScreen(uifactory.decode(xml, this));
     }
 
     public function usecase5():void {
@@ -155,7 +161,7 @@ button {\
     */
     public function usecase1():void {
       uifactory.addDecorator(WinButtonBackground.descriptor);
-      uifactory.setCSS("\
+      uifactory.cssFactory.parse("\
 label {\
   font-size: 20;\
   font-color: 0xff00;\
@@ -191,7 +197,7 @@ vbox {\
         <vbox margin-right="20" id="vbox-left">
           <label text="Game" id="label-Game" />
           <text-button text="Play" id="playBtn" width="120" spacing="5" click="say1" />
-          <text-button text="Load" disabled="true" id="button-load" />
+          <text-button text="Load" disabled="yes" id="button-load" />
           <text-label id="txtLbl" text="This is simple text" />
           <button id="button-exit" layout="horizontal" background-color="0xbbbbbb"
                       padding="5" spacing="5">
@@ -200,8 +206,9 @@ vbox {\
             <label text="Have Beer" font-color="0xff" />
           </button>
           <input holder="Enter something" percent-width="100" height="25" id="somethingInp" />
+          <progress-bar width="200" progress="65" />
         </vbox>
-        <scrollControlBase height="100">
+        <scroll-control height="100">
         <vbox id="vbox-right">
           <label text="Use scroll" id="label-settings" />
           <button id="imgBtn" border-width="1" padding="3" click="say3" >
@@ -214,7 +221,7 @@ vbox {\
             <text-button text="Controls" id="button-controls" />
           </vbox>
         </vbox>
-        </scrollControlBase>
+        </scroll-control>
         <vbox>
           <checkbox text="1" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
           <checkbox text="2" radio-group="testing" box-color="0xffffff" box-fill-color="0xff0000" />
@@ -224,6 +231,7 @@ vbox {\
       </hbox>;
       var e:HBox = uifactory.decode(xml, this) as HBox;
       screenManager.displayScreen(e);
+      playBtn.style.setValue("background-gradient-color-1:hover", 0xff0000);
     }
 
     public var imgBtn:BaseButton;

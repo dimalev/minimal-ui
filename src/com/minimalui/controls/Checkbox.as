@@ -16,6 +16,11 @@ background-color: 0xff00; background-transparency: 0; padding-left: 10px");
 
     protected override function getLayout():ILayout { return new RawLayout(true); }
 
+    public function set text(txt:String):void { setStyle(Label.TEXT_CONTENT, txt); }
+    public function get text():String {
+      return mLabel.getStyle(Label.TEXT_CONTENT) as String;
+    }
+
     public function Checkbox(idorcss:String = null, id:String = null) {
       super(idorcss, id);
       addChild(mBox);

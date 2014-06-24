@@ -17,7 +17,8 @@ package com.minimalui.hatchery {
         if(mContent is Loader)
           (mContent as Loader).contentLoaderInfo.removeEventListener(Event.COMPLETE, onLoaded);
       }
-      if(mContent = d) {
+      mContent = d;
+      if(mContent) {
         addChild(d);
         if(d is Loader)
           (d as Loader).contentLoaderInfo.addEventListener(Event.COMPLETE, onLoaded);
@@ -36,18 +37,19 @@ package com.minimalui.hatchery {
     }
 
     protected override function coreMeasure():void {
+      var scale:Number = style.hasValue("scale") ? style.getNumber("scale") : 1;
       if(mContent) {
         if(mContent is Loader) {
           var loader:Loader = mContent as Loader;
           if(loader.contentLoaderInfo.bytesLoaded == loader.contentLoaderInfo.bytesTotal &&
              loader.contentLoaderInfo.bytesTotal > 0) {
-            if(isNaN(mMeasuredWidth)) mMeasuredWidth = loader.contentLoaderInfo.width;
-            if(isNaN(mMeasuredHeight)) mMeasuredHeight = loader.contentLoaderInfo.height;
+            if(isNaN(mMeasuredWidth)) mMeasuredWidth = loader.contentLoaderInfo.width * scale;
+            if(isNaN(mMeasuredHeight)) mMeasuredHeight = loader.contentLoaderInfo.height * scale;
             return;
           }
         } else {
-          if(isNaN(mMeasuredWidth)) mMeasuredWidth = mContent.width;
-          if(isNaN(mMeasuredHeight)) mMeasuredHeight = mContent.height;
+          if(isNaN(mMeasuredWidth)) mMeasuredWidth = mContent.width * scale;
+          if(isNaN(mMeasuredHeight)) mMeasuredHeight = mContent.height * scale;
           return;
         }
       }
@@ -56,8 +58,11 @@ package com.minimalui.hatchery {
 
     protected override function coreLayout():void {
       if(!mContent) return;
-      mContent.width = mLayoutWidth;
-      mContent.height = mLayoutHeight;
+      if(style.hasValue("scale")) mContent.scaleX = mContent.scaleY = style.getNumber("scale");
+      else {
+        mContent.width = mLayoutWidth;
+        mContent.height = mLayoutHeight;
+      }
     }
 
     public function Image(child:DisplayObject = null, cssorid:String = null, id:String = null) {

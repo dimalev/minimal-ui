@@ -29,23 +29,73 @@ package com.minimalui.base {
     }
 
     public final function select(path:String):Element {
-      var res:Object;
+      ;
       var reg:RegExp = /(#| )?([\w\d\-]+)/g;
       var holder:Element = mHost;
-      while(res = reg.exec(path)) {
+      var res:Object = reg.exec(path);
+      while(res) {
         if(!(holder is BaseContainer)) return null;
         if(res[1] == "#") {
           holder = (holder as BaseContainer).getById(res[2]);
         } else {
           return null;
         }
+        res = reg.exec(path);
       }
       return holder;
     }
 
+    // ----
+    // -- START OF ALPHA SCREEN CHANGING
+    // ----
+
+    // protected var mPreviousScreen:Element;
+    // protected var mIsRemoving:Boolean = false;
+    // protected var mIsShowing:Boolean = false;
+
+    // public function displayScreen(screen:Element):void {
+    //   if(mCurrentScreen) {
+    //     mPreviousScreen = mCurrentScreen;
+    //     mIsRemoving = true;
+    //     addEventListener(Event.ENTER_FRAME, onEnterFrame);
+    //     mCurrentScreen = screen;
+    //     mCurrentScreen.alpha = 0;
+    //   } else {
+    //     mIsShowing = true;
+    //     mCurrentScreen = screen;
+    //     mCurrentScreen.alpha = 0;
+    //     addChild(mCurrentScreen);
+    //     addEventListener(Event.ENTER_FRAME, onEnterFrame);
+    //   }
+    // }
+
+    // protected function onEnterFrame(e:Event):void {
+    //   if(mIsRemoving) {
+    //      mPreviousScreen.alpha -= 0.1;
+    //      if(mPreviousScreen.alpha <= 0) {
+    //        mPreviousScreen.cacheAsBitmap = false;
+    //        removeChild(mPreviousScreen);
+    //        mPreviousScreen.alpha = 1;
+    //        mIsRemoving = !(mIsShowing = true);
+    //        addChild(mCurrentScreen);
+    //      }
+    //   } else {
+    //      mCurrentScreen.alpha += 0.1;
+    //      if(mCurrentScreen.alpha >= 1) {
+    //        mIsShowing = false;
+    //        removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+    //      }
+    //   }
+    // }
+
+    // ----
+    // -- END OF ALPHA SCREEN CHANGING
+    // ----
+
     public function displayScreen(screen:Element):void {
       if(mCurrentScreen) removeChild(mCurrentScreen);
       addChild(mCurrentScreen = screen);
+      dispatchEvent(new Event(Event.CHANGE));
     }
 
     public final function addScreen(name:String, screen:Element):void {

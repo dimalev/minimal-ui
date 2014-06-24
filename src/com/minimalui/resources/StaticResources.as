@@ -38,7 +38,7 @@ package com.minimalui.resources {
 
     public function retrieve(resource:String):DisplayObject {
       if(mImages.hasOwnProperty(resource))
-        return (new this[mImages[resource]]) as Bitmap;
+        return (new this[mImages[resource]]) as DisplayObject;
       if(mParts.hasOwnProperty(resource)) {
         var buffer:DisplayObject = mParts[resource].parentBuffer;
         if(!buffer) buffer = mParts[resource].parentBuffer = retrieve(mParts[resource].parent)

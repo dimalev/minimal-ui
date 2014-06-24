@@ -6,6 +6,7 @@ package com.minimalui.base {
   import com.minimalui.base.Style;
   import com.minimalui.decorators.Border;
   import com.minimalui.decorators.Background;
+  import com.minimalui.factories.IFactory
 
   /**
    * Base class for Minimal UI package drawing and managing. Extending this class you may be sure to be successfully
@@ -106,6 +107,12 @@ package com.minimalui.base {
 
     public final function set versatile(b:Boolean):void { layoutManager.setVersatile(this, b); }
 
+    public override function set visible(b:Boolean):void {
+      super.visible = b;
+			invalidateSize();
+			layoutManager.forceUpdate();
+    }
+
     /**
      * Get layout manager associated with this element.
      *
@@ -115,6 +122,15 @@ package com.minimalui.base {
       if(mLayoutManager) return mLayoutManager;
       if(parent && parent is Element) return (parent as Element).layoutManager;
       return LayoutManager.getDefault();
+    }
+
+    /**
+     * Get UI factory associated with this element.
+     *
+     * @return UI factory associated with this element.
+     */
+    public final function get uifactory():IFactory {
+      return layoutManager.uifactory;
     }
 
     /**
@@ -160,6 +176,16 @@ package com.minimalui.base {
      * Height preferred by this element.
      */
     public final function get measuredHeight():int { return mMeasuredHeight; }
+
+    /**
+     * Height set by parent container.
+     */
+    public final function get layoutHeight():Number { return mLayoutHeight; }
+
+    /**
+     * Width set by parent container.
+     */
+    public final function get layoutWidth():Number { return mLayoutWidth; }
 
     /**
      * Width preferred by this element.
@@ -240,6 +266,7 @@ package com.minimalui.base {
       // if(isNaN(mLayoutHeight)) return Math.ceil(Math.max(super.height, measuredHeight));
       // return Math.ceil(Math.max(super.height, mLayoutHeight));
     }
+
     /**
      * Real element width. To get preferred size check styles.
      */
@@ -296,6 +323,7 @@ package com.minimalui.base {
       addEventListener(Event.ADDED, onNewParent);
       addDecorator(new Border(this));
       addDecorator(new Background(this));
+      addAutoInitializeListeners();
       if(!id && !idorcss) return;
       if(!id && idorcss && idorcss.match(/^[\w]+[\w\d\-]*$/)) {
         mId = idorcss;
@@ -303,6 +331,37 @@ package com.minimalui.base {
       }
       mId = id;
       if(idorcss != null) setStyles(idorcss);
+    }
+
+    /**
+     * Called automatically on first enter, exit frame or after added to stage. override coreInitialize function to
+     * perform initialization.
+     */
+    public function initialize():void {
+      removeEventListener(Event.EXIT_FRAME, onFirstExit);
+      removeEventListener(Event.ENTER_FRAME, onFirstEnter);
+      removeEventListener(Event.ADDED_TO_STAGE, onFirstEnter);
+      coreInitialize();
+    }
+
+    /**
+     * First called function of your class. It is believed that all the initial css is set when this is called.
+     */
+    protected function coreInitialize():void {
+    }
+
+    private function addAutoInitializeListeners():void {
+      addEventListener(Event.EXIT_FRAME, onFirstExit);
+      addEventListener(Event.ENTER_FRAME, onFirstEnter);
+      addEventListener(Event.ADDED_TO_STAGE, onFirstEnter);
+    }
+
+    private function onFirstExit(e:Event):void {
+      initialize();
+    }
+
+    private function onFirstEnter(e:Event):void {
+      initialize();
     }
 
     private function onNewParent(e:Event):void {
@@ -364,6 +423,7 @@ package com.minimalui.base {
     public final function setStyles(css:String):void { mStyle.setCSS(css); }
 
     public final function commitProperties():void {
+      for each(var d:Decorator in mDecorators) d.onCommitProperties();
       coreCommitProperties();
       mDirty = false;
     }
@@ -421,7 +481,14 @@ package com.minimalui.base {
       coreUpdate();
     }
 
-    protected function hasChanged(values:Vector.<String>):Boolean {
+    /**
+     * Check if any of given styles changed.
+     *
+     * @param values - list of styles to check.
+     *
+     * @return if any of given styles changed.
+     */
+    public final function hasChanged(values:Vector.<String>):Boolean {
       return mStyle.changed.some(function(v:String, k:int, a:Vector.<String>):Boolean {
           return this.indexOf(v) >= 0;
         }, values);
